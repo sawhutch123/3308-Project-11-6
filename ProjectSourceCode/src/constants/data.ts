@@ -45,10 +45,20 @@ export const events = [
     host: "Maya R.",
     hostRating: 4.9,
     tags: ["Relaxed", "Friends Going", "Verified Host"],
-    image:
+    images: [
       "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?auto=format&fit=crop&w=1200&q=80",
+    ],
     mutuals: ["Sofia", "Jordan", "Nina"],
     status: "RSVP Open",
+    description:
+      "Come kick it on the rooftop with good music, good people, and Flatiron views. Keeping it chill — bring a friend, grab a drink, and enjoy the night. No drama, just vibes.",
+    comments: [
+      { author: "Sofia", text: "Can't wait! Do we need to bring anything?", timestamp: "2h ago" },
+      { author: "Maya R.", text: "Just yourselves! Drinks and snacks are covered.", timestamp: "1h ago" },
+      { author: "Jordan", text: "Pulling up with Nina, save us a spot on the roof", timestamp: "45m ago" },
+    ],
   },
   {
     id: 2,
@@ -68,10 +78,21 @@ export const events = [
     host: "Ethan K.",
     hostRating: 4.7,
     tags: ["High Energy", "Theme", "Approval Required"],
-    image:
+    images: [
       "https://images.unsplash.com/photo-1496024840928-4c417adf211d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80",
+    ],
     mutuals: ["Cam", "Alex", "Riley"],
     status: "Request Invite",
+    description:
+      "Y2K is back. Dig out the low-rise jeans and frosted tips — we're going full early-2000s in the basement. Expect throwback beats, blacklights, and a packed dance floor. Invite-only so we can keep the energy right.",
+    comments: [
+      { author: "Cam", text: "What's the dress code situation? Going full butterfly clips", timestamp: "5h ago" },
+      { author: "Ethan K.", text: "The more Y2K the better. Bonus points for frosted tips", timestamp: "4h ago" },
+      { author: "Riley", text: "This is gonna be insane, already got my outfit ready", timestamp: "2h ago" },
+      { author: "Alex", text: "Is there a waitlist if the invite requests fill up?", timestamp: "1h ago" },
+    ],
   },
   {
     id: 3,
@@ -91,10 +112,20 @@ export const events = [
     host: "Jordan T.",
     hostRating: 4.8,
     tags: ["Music", "Smaller Crowd", "Trusted Guests"],
-    image:
+    images: [
       "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1200&q=80",
+    ],
     mutuals: ["Owen", "Grace"],
     status: "RSVP Open",
+    description:
+      "The show ends but the night doesn't have to. Swing by after the Pearl Street house show for drinks, conversations, and whatever music people feel like playing. Smaller crowd, real connections.",
+    comments: [
+      { author: "Owen", text: "Which house show is this after? The one at Fox?", timestamp: "1d ago" },
+      { author: "Jordan T.", text: "Yep, the Fox Theatre show. We're a 2 min walk from the venue", timestamp: "1d ago" },
+      { author: "Grace", text: "Love that it's free. See y'all Saturday!", timestamp: "8h ago" },
+    ],
   },
   {
     id: 4,
@@ -114,10 +145,21 @@ export const events = [
     host: "Sofia L.",
     hostRating: 4.9,
     tags: ["Campus", "Welcoming", "Low Pressure"],
-    image:
+    images: [
       "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1200&q=80",
+    ],
     mutuals: ["Noah", "Mila", "Sage"],
     status: "RSVP Open",
+    description:
+      "Win or lose, we're linking up after the game. Backyard hangout near Folsom with food, music, and good energy. Everyone's welcome — bring your crew and come celebrate the Buffs.",
+    comments: [
+      { author: "Noah", text: "Are we doing a potluck thing or is food provided?", timestamp: "3h ago" },
+      { author: "Sofia L.", text: "I've got burgers and drinks covered. If you want to bring a side, go for it!", timestamp: "2h ago" },
+      { author: "Mila", text: "Bringing my speaker just in case", timestamp: "1h ago" },
+      { author: "Sage", text: "Let's gooo Buffs! Win or lose we're celebrating", timestamp: "30m ago" },
+    ],
   },
   {
     id: 5,
@@ -137,10 +179,21 @@ export const events = [
     host: "Chris D.",
     hostRating: 4.6,
     tags: ["Casual", "Apartment", "Friends Going"],
-    image:
+    images: [
       "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=1200&q=80",
+    ],
     mutuals: ["Ben", "Lucy"],
     status: "RSVP Open",
+    description:
+      "Low-key apartment mixer — meet some new faces, catch up with friends, and just hang. Music will be on, snacks will be out. Nothing wild, just a solid Saturday night with good company.",
+    comments: [
+      { author: "Ben", text: "How many people are you expecting? Want to make sure it's not too packed", timestamp: "6h ago" },
+      { author: "Chris D.", text: "Keeping it around 50. Plenty of room, don't worry", timestamp: "5h ago" },
+      { author: "Lucy", text: "Can I bring a friend who's not on the app yet?", timestamp: "3h ago" },
+      { author: "Chris D.", text: "Yeah just vouch for them at the door, all good", timestamp: "2h ago" },
+    ],
   },
   {
     id: 6,
@@ -160,10 +213,20 @@ export const events = [
     host: "Ava P.",
     hostRating: 4.8,
     tags: ["Free", "Low Pressure", "Welcoming"],
-    image:
+    images: [
       "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1464047736614-af63643285bf?auto=format&fit=crop&w=1200&q=80",
+    ],
     mutuals: ["Emma", "Sam"],
     status: "RSVP Open",
+    description:
+      "End the weekend right. Chill Sunday hangout with tea, snacks, and good conversations. No pressure, no loud music — just a reset before the week starts. Come decompress with us.",
+    comments: [
+      { author: "Emma", text: "This is exactly what I need after this week. Thank you for hosting!", timestamp: "4h ago" },
+      { author: "Ava P.", text: "Of course! Bringing matcha and cookies, feel free to bring your own comfort snacks", timestamp: "3h ago" },
+      { author: "Sam", text: "Is there parking nearby or should I bike?", timestamp: "1h ago" },
+    ],
   },
 ];
 

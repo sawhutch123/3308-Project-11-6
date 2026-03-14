@@ -1,10 +1,4 @@
-import {
-  CalendarDays,
-  Users,
-  Shield,
-  ChevronRight,
-  Plus,
-} from "lucide-react";
+import { CalendarDays, Users, Shield, ChevronRight, Plus } from "lucide-react";
 import { BRAND } from "../constants/brand";
 import { events as eventsType } from "../constants/data";
 import SectionHeader from "../components/ui/SectionHeader";
@@ -21,6 +15,7 @@ function HomePage({
   filteredEvents,
   visibleCount,
   setVisibleCount,
+  onOpenEvent,
 }: {
   query: string;
   setQuery: (q: string) => void;
@@ -29,6 +24,7 @@ function HomePage({
   filteredEvents: typeof eventsType;
   visibleCount: number;
   setVisibleCount: React.Dispatch<React.SetStateAction<number>>;
+  onOpenEvent: (event: (typeof eventsType)[number]) => void;
 }) {
   const shown = filteredEvents.slice(0, visibleCount);
   const canShowMore = visibleCount < filteredEvents.length;
@@ -43,14 +39,11 @@ function HomePage({
       />
 
       <section className="space-y-5">
-        <SectionHeader
-          eyebrow="Discover"
-          title="Events happening around Boulder"
-          description="Browse public and approved events, compare trust signals, and RSVP faster."
-        />
+        <SectionHeader eyebrow="Featured" title={""} />
+
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventCard key={event.id} event={event} onOpen={onOpenEvent} />
           ))}
         </div>
         {filteredEvents.length === 0 ? (

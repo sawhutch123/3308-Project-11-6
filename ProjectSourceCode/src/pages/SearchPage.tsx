@@ -12,12 +12,14 @@ function SearchPage({
   selectedFilter,
   setSelectedFilter,
   filteredEvents,
+  onOpenEvent,
 }: {
   query: string;
   setQuery: (q: string) => void;
   selectedFilter: string;
   setSelectedFilter: (f: string) => void;
   filteredEvents: typeof eventsType;
+  onOpenEvent: (event: (typeof eventsType)[number]) => void;
 }) {
   const [locationFilter, setLocationFilter] = useState("All Locations");
   const [dateFilter, setDateFilter] = useState("");
@@ -151,7 +153,7 @@ function SearchPage({
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {advancedResults.map((event) => (
-          <EventCard key={event.id} event={event} />
+          <EventCard key={event.id} event={event} onOpen={onOpenEvent} />
         ))}
       </div>
 

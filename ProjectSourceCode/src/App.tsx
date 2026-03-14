@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/SearchPage";
 import AccountPage from "./pages/AccountPage";
 import MapPlaceholderPage from "./pages/MapPlaceholderPage";
+import EventDetailPage from "./pages/EventDetailPage";
 
 export default function CuffApp() {
   const [activePage, setActivePage] = useState("home");
@@ -13,6 +14,17 @@ export default function CuffApp() {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [visibleCount, setVisibleCount] = useState(6);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<(typeof events)[number] | null>(null);
+
+  const handleOpenEvent = (event: (typeof events)[number]) => {
+    setSelectedEvent(event);
+    setActivePage("event");
+  };
+
+  const handleBackFromEvent = () => {
+    setSelectedEvent(null);
+    setActivePage("home");
+  };
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -30,7 +42,7 @@ export default function CuffApp() {
       if (selectedFilter === "Tonight") matchesFilter = event.isTonight;
       if (selectedFilter === "This Weekend")
         matchesFilter = ["2026-03-14", "2026-03-15", "2026-03-16"].includes(
-          event.dateValue
+          event.dateValue,
         );
       if (selectedFilter === "Friends Going")
         matchesFilter = event.friendsGoing >= 5;
@@ -64,6 +76,7 @@ export default function CuffApp() {
               filteredEvents={filteredEvents}
               visibleCount={visibleCount}
               setVisibleCount={setVisibleCount}
+              onOpenEvent={handleOpenEvent}
             />
           )}
           {activePage === "search" && (
@@ -73,6 +86,13 @@ export default function CuffApp() {
               selectedFilter={selectedFilter}
               setSelectedFilter={setSelectedFilter}
               filteredEvents={filteredEvents}
+              onOpenEvent={handleOpenEvent}
+            />
+          )}
+          {activePage === "event" && selectedEvent && (
+            <EventDetailPage
+              event={selectedEvent}
+              onBack={handleBackFromEvent}
             />
           )}
           {activePage === "account" && <AccountPage />}

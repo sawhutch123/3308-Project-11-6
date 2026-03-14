@@ -6,24 +6,22 @@ import {
   BadgeCheck,
   Star,
   ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import { BRAND } from "../constants/brand";
 import Badge from "./ui/Badge";
 import CapacityBar from "./ui/CapacityBar";
 
-function EventCard({
-  event,
-}: {
-  event: (typeof import("../constants/data").events)[number];
-}) {
+function EventCard({ event, onOpen }) {
   return (
     <article
-      className="overflow-hidden rounded-[28px] border border-white/10 shadow-xl shadow-black/10 transition hover:border-white/20"
+      onClick={() => onOpen(event)}
+      className="cursor-pointer overflow-hidden rounded-[28px] border border-white/10 shadow-xl shadow-black/10 transition hover:border-white/20"
       style={{ backgroundColor: BRAND.surfaceAlt }}
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src={event.image}
+          src={event.images[0]}
           alt={event.title}
           className="h-full w-full object-cover"
         />
@@ -90,6 +88,7 @@ function EventCard({
               {event.fee === 0 ? "Free" : `$${event.fee}`}
             </div>
             <button
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white hover:brightness-110"
               style={{ backgroundColor: BRAND.accent }}
             >
