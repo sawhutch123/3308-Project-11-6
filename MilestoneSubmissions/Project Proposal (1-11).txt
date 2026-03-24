@@ -33,3 +33,6 @@ For the events themselves we’ll have the option for the event to be marked as 
   - Mondays from 4:00 - 5:00, in person at CSEL
  TA Meeting: 
   - Tuesdays from 2:50 PM - 3:00 PM, in person at CSEL
+
+
+  13. Figma wireframes: https://riff-puppy-52257314.figma.site 
