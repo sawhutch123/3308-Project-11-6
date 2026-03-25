@@ -35,3 +35,20 @@ For the events themselves we’ll have the option for the event to be marked as 
   - Tuesdays from 2:50 PM - 3:00 PM, in person at CSEL
 12. Case Diagram: See 3308-Project-11-6/MilestoneSubmissions/#12 case diagram.png
 13. Figma wireframes: https://riff-puppy-52257314.figma.site 
+
+Extra Credit - Potential Risks: 
+
+- Privacy and Data Security:
+   Since our application handles student and location data a possible risk would be compromising the identities and locations of people to bad actors or individuals who shouldn't be entitled to this data. This risk has high severity as it directly impacts user experience and the perceived trust that users have with our platform. This risk can be mitigated by implementing strong authentication through requiring that users choose strong passwords for their accounts and by ensuring that pages which contain sensitive data require user authentication in order to access. Another way that this risk could be mitigated would be through data encryption.
+
+- Safety and Liability Concerns:
+   Due to the fact that our application facilitates real-world events and gatherings naturally this could lead to unsafe scenarios such as overcrowding or harassment, the consequences of which could be blamed on our platform. This is a high severity risk since it could lead to a lack of trust in our platform as well as even possible legal action. This could be mitigates by implementing clear terms of service for our platform as well as liability disclaimers. We could also implement general safety guidelines for all events hosted on our platform.
+
+- Misuse of our platform for harassment, spam, or fake events: 
+    Since our platform is inherently social there is a risk of people using it to harass others or host fake events. This risk has a medium to high severity due to the direct impact that the possibility of harassment would have on our users. This could be mitigated through implementing blocking and reporting features as well as having either manual or automated moderation on events and chats hosted on our platform. 
+
+- Scalability and Performance issues:
+    If our app starts to become more popular than we'd anticipated the number of events being hosted, users that have signed up for our platform, and the number of chats being sent could start to have a strain on our backend. The risk associated with this is low to medium since slow-downs could lead to users stopping using our platform. This risk could be mitigated through using efficient methodologies for storing and caching event and user data and optimizing data base queries. This can also be mitigated by pre-emptively stress testing our platform before launching.
+
+- Compliance with University Policies:
+    Since our platform's audience is CU Boulder students and we facilitate hosting parties and events there's a real possibility that what happens at these events may violate or not align with CU Boulder's policies. The risk associated with this would be medium to high as this could lead to our platform being taken down or scrutinized by CU Boulder administration. This risk can be mitigated in a similar manner to the safety and liability concerns mentioned previously by implementing clear guidelines that align with CU Boulder's policies. 
