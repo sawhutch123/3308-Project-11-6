@@ -1,0 +1,45 @@
+<div class="edit-event-container">
+  <h1>Edit Event</h1>
+
+  <form action="/events/{{event._id}}/edit" method="POST" enctype="multipart/form-data">
+
+    <label for="title">Event Title</label>
+    <input type="text" id="title" name="title" value="{{event.title}}" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" required>{{event.description}}</textarea>
+
+    <label for="price">Price</label>
+    <input type="number" id="price" name="price" value="{{event.price}}">
+
+    <label for="date">Date</label>
+    <input type="date" id="date" name="date" value="{{event.date}}" required>
+
+    <label for="time">Time</label>
+    <input type="time" id="time" name="time" value="{{event.time}}" required>
+
+    <label for="location">Location</label>
+    <input type="text" id="location" name="location" value="{{event.location}}" required>
+
+    <label for="maxCapacity">Max Capacity</label>
+    <input type="number" id="maxCapacity" name="maxCapacity" value="{{event.maxCapacity}}" required>
+
+    <label for="tags">Tags (comma separated)</label>
+    <input type="text" id="tags" name="tags" value="{{event.tags}}">
+
+    <label for="photos">Upload New Photos (optional)</label>
+    <input type="file" id="photos" name="photos" multiple>
+
+    {{!-- Show existing photos --}}
+    {{#if event.photos}}
+      <div class="existing-photos">
+        <h3>Current Photos</h3>
+        {{#each event.photos}}
+          <img src="/uploads/{{this}}" alt="Event photo" class="event-photo-preview">
+        {{/each}}
+      </div>
+    {{/if}}
+
+    <button type="submit" class="btn-primary">Save Changes</button>
+  </form>
+</div>
