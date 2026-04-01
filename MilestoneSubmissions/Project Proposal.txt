@@ -1,0 +1,55 @@
+﻿CSCI 3308 Group Project Proposal
+
+
+1. Team Number: 011-6
+
+2. Team Name: Docker Tech Tips
+
+3. Team Members: 
+ Ryan Renemans - ryre3851 - ryre3851@colorado.edu
+ Dawson Ash - dawsonash - daas8540@colorado.edu 
+ Sawyer Basch - sawhutch123 - saba6053@colorado.edu
+ Abrham Gebremeskel - abrhamgm - abge3546@colorado.edu
+ Ayub Ahmed - ayubahmed1 - ayah7240@colorado.edu
+
+4. Application Name: CU Function Finder (CUFF)
+
+5. Application Description: Our application is a CU Party finder, where students can create/host events as well as RSVP/sign up for other student’s events. We’ll prompt users to create an account which will be integrated into a “friends” system where you can request and add other CU Boulder students as friends on our platform. Our software will also have calendaring functionality so that the logistics for these parties (such as entry fee, theme, time, and location) can be formalized and easy to sign up for and set up.
+
+For the events themselves we’ll have the option for the event to be marked as public (available to all CU Boulder students who have signed up for our service) or private events (events that are only viewable/available to friends or specified users). We plan on having the publicly listed events appear on the homepage for our web application. We’ll also have a ratings system where you can provide users with a “guest” or “host” rating, which will allow users to provide feedback about other users and will incentivize users to be good guests and good hosts. Lastly, we’ll strive to integrate a message board and messaging chat rooms so that our users can communicate with each other directly on our platform.
+
+6. Audience: Our target audience would be CU Boulder students. Our software is meant to create a means for CU Boulder students to find and host parties and events.
+
+7. Vision Statement: To offer a feature-rich, streamlined party planning and finding experience for students of CU Boulder.
+
+8. Version Control: https://github.com/sawhutch123/3308-Project-11-6
+
+9. Development Methodology: We’ll be using the Agile methodology for our project development cycle
+
+10.  Communication Plan: We’ll communicate predominantly via Discord in order to share project updates as well as during our weekly in-person team meetings.
+
+11.  Meeting Plan: 
+ Team Meetings: 
+  - Wednesdays from 4:45 PM - 6:25 PM, in person in at  ECES 114
+  - Mondays from 4:00 - 5:00, in person at CSEL
+ TA Meeting: 
+  - Tuesdays from 2:50 PM - 3:00 PM, in person at CSEL
+12. Case Diagram: See 3308-Project-11-6/MilestoneSubmissions/#12 case diagram.png
+13. Figma wireframes: https://riff-puppy-52257314.figma.site 
+
+Extra Credit - Potential Risks: 
+
+- Privacy and Data Security:
+   Since our application handles student and location data a possible risk would be compromising the identities and locations of people to bad actors or individuals who shouldn't be entitled to this data. This risk has high severity as it directly impacts user experience and the perceived trust that users have with our platform. This risk can be mitigated by implementing strong authentication through requiring that users choose strong passwords for their accounts and by ensuring that pages which contain sensitive data require user authentication in order to access. Another way that this risk could be mitigated would be through data encryption.
+
+- Safety and Liability Concerns:
+   Due to the fact that our application facilitates real-world events and gatherings naturally this could lead to unsafe scenarios such as overcrowding or harassment, the consequences of which could be blamed on our platform. This is a high severity risk since it could lead to a lack of trust in our platform as well as even possible legal action. This could be mitigates by implementing clear terms of service for our platform as well as liability disclaimers. We could also implement general safety guidelines for all events hosted on our platform.
+
+- Misuse of our Platform for Harassment, Spam, or Fake Events: 
+    Since our platform is inherently social there is a risk of people using it to harass others or host fake events. This risk has a medium to high severity due to the direct impact that the possibility of harassment would have on our users. This could be mitigated through implementing blocking and reporting features as well as having either manual or automated moderation on events and chats hosted on our platform. 
+
+- Scalability and Performance issues:
+    If our app starts to become more popular than we'd anticipated the number of events being hosted, users that have signed up for our platform, and the number of chats being sent could start to have a strain on our backend. The risk associated with this is low to medium since slow-downs could lead to users stopping using our platform. This risk could be mitigated through using efficient methodologies for storing and caching event and user data and optimizing data base queries. This can also be mitigated by pre-emptively stress testing our platform before launching.
+
+- Compliance with University Policies:
+    Since our platform's audience is CU Boulder students and we facilitate hosting parties and events there's a real possibility that what happens at these events may violate or not align with CU Boulder's policies. The risk associated with this would be medium to high as this could lead to our platform being taken down or scrutinized by CU Boulder administration. This risk can be mitigated in a similar manner to the safety and liability concerns mentioned previously by implementing clear guidelines that align with CU Boulder's policies. 
