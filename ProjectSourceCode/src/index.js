@@ -22,7 +22,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view options', { layout: 'layouts/main' });
 hbs.registerPartials(path.join(__dirname, 'views/partials'));
-
+hbs.registerHelper('eq', (a, b) => a === b);
 // Middleware
 app.use(express.static(path.join(__dirname, 'resources')));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -478,7 +478,7 @@ app.post('/reviews', requireAuth, async (req, res) => {
 // ----------------------------------------------------------------------------------------------
 // NOTIFICATIONS API CALLS (removed previous API calls and implemented previous functionality in these along with user auth requirement)
 // GET notifications (show notifications for the logged-in user - user auth required)
-app.get('/notifications', requireAuth, async (req, res) => {
+app.get('/notifications', async (req, res) => {
     try {
         const notifications = await db.any(
             `SELECT * FROM notifications
