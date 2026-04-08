@@ -73,7 +73,7 @@
         <div class="cuff-section-title">EVENTS HOSTED</div>
         {{#if eventsHosted.length}}
           {{#each eventsHosted}}
-            <a href="/event/{{this.event_id}}" style="text-decoration:none; color:inherit;">
+            <a href="/events/{{this.event_id}}" style="text-decoration:none; color:inherit;">
               <div class="cuff-card mb-2">
                 <div class="d-flex align-items-start gap-3">
                   <div class="event-badge">
@@ -85,7 +85,7 @@
                       <div style="font-size:0.75rem; color:var(--cuff-muted); margin-top:2px;">{{this.event_details}}</div>
                     {{/if}}
                     <div style="font-size:0.7rem; color:var(--cuff-gray-light); margin-top:4px; font-family:'Space Mono',monospace;">
-                      {{formatDate this.event_time}}
+                      {{this.event_time}}
                       {{#if this.event_cost}}
                         &middot; ${{this.event_cost}}
                       {{/if}}
@@ -131,7 +131,7 @@
         <div class="cuff-section-title">EVENTS ATTENDED</div>
         {{#if eventsAttended.length}}
           {{#each eventsAttended}}
-            <a href="/event/{{this.event_id}}" style="text-decoration:none; color:inherit;">
+            <a href="/events/{{this.event_id}}" style="text-decoration:none; color:inherit;">
               <div class="cuff-card mb-2">
                 <div class="d-flex align-items-start gap-3">
                   <div class="event-badge">
@@ -143,7 +143,7 @@
                       <div style="font-size:0.75rem; color:var(--cuff-muted); margin-top:2px;">{{this.event_details}}</div>
                     {{/if}}
                     <div style="font-size:0.7rem; color:var(--cuff-gray-light); margin-top:4px; font-family:'Space Mono',monospace;">
-                      {{formatDate this.event_time}}
+                      {{this.event_time}}
                       {{#if this.event_cost}}
                         &middot; ${{this.event_cost}}
                       {{/if}}
