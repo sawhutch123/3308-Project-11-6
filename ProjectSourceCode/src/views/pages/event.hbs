@@ -1,0 +1,177 @@
+{{!< main}}
+<div class="container" style="max-width:900px; padding-top:2rem; padding-bottom:5rem;">
+
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div class="page-title-bar"></div>
+    <h1 class="page-title mb-0">EVENT DETAILS</h1>
+  </div>
+  <hr class="mb-4" style="border-color:var(--cuff-border);" />
+
+  <div class="cuff-section mb-4">
+    <h2 style="font-size:1.1rem; margin-bottom:0.5rem;">{{event.event_name}}</h2>
+    <div style="font-size:0.75rem; color:var(--cuff-muted); font-family:'Space Mono',monospace;">
+      {{formatDate event.event_time}}
+      {{#unless isFree}}
+        &middot; ${{event.event_cost}}
+      {{else}}
+        &middot; FREE
+      {{/unless}}
+      &middot; {{guestCount}} attending
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <div class="col-md-7">
+
+      <div class="cuff-section mb-4">
+        <div class="cuff-section-title">DESCRIPTION</div>
+        {{#if event.event_details}}
+          <p style="font-size:0.8rem; color:var(--cuff-text); line-height:1.6; margin-bottom:0;">
+            {{event.event_details}}
+          </p>
+        {{else}}
+          <p style="font-size:0.8rem; color:var(--cuff-muted); margin-bottom:0;">
+            No description provided.
+          </p>
+        {{/if}}
+      </div>
+
+      <div class="cuff-section mb-4">
+        <div class="cuff-section-title">PRICE</div>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-tag" style="font-size:1rem; color:var(--cuff-gray-mid);"></i>
+          <span style="font-size:0.85rem; font-weight:700;">
+            {{#if isFree}}
+              Free
+            {{else}}
+              ${{event.event_cost}}
+            {{/if}}
+          </span>
+        </div>
+      </div>
+
+      <div class="cuff-section mb-4">
+        <div class="cuff-section-title">LOCATION</div>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-lock" style="font-size:1rem; color:var(--cuff-gray-mid);"></i>
+          <div>
+            {{#if event.zip_code}}
+              <span style="font-size:0.8rem; color:var(--cuff-text);">
+                Boulder, CO {{event.zip_code}}
+              </span>
+            {{else}}
+              <span style="font-size:0.8rem; color:var(--cuff-text);">
+                Location TBD
+              </span>
+            {{/if}}
+            <div style="font-size:0.7rem; color:var(--cuff-muted); margin-top:2px;">
+              <i class="bi bi-info-circle" style="font-size:0.65rem;"></i>
+              Full address shared after RSVP
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cuff-section mb-4">
+        <div class="cuff-section-title">PARKING</div>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-p-circle" style="font-size:1rem; color:var(--cuff-gray-mid);"></i>
+          {{#if event.parking_info}}
+            <span style="font-size:0.8rem; color:var(--cuff-text);">
+              {{event.parking_info}}
+            </span>
+          {{else}}
+            <span style="font-size:0.8rem; color:var(--cuff-muted);">
+              No parking info provided.
+            </span>
+          {{/if}}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="col-md-5">
+
+      <div class="cuff-section mb-4">
+        <div class="cuff-section-title">HOST</div>
+        {{#if host}}
+          <a href="/user/{{host.user_id}}" style="text-decoration:none; color:inherit;">
+            <div class="cuff-card">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar-box" style="width:52px; height:52px; font-size:1rem;">
+                  {{hostInitials}}
+                </div>
+                <div class="flex-grow-1">
+                  <div style="font-family:'Space Mono',monospace; font-size:0.8rem; font-weight:700;">
+                    {{host.first_name}} {{host.last_name}}
+                  </div>
+                  <div style="font-size:0.7rem; color:var(--cuff-muted); margin-top:2px;">
+                    View profile &rarr;
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+        {{else}}
+          <div style="font-size:0.8rem; color:var(--cuff-muted);">
+            Host information unavailable.
+          </div>
+        {{/if}}
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="stat-box">
+            <div class="stat-value">
+              {{#if avgHostRating}}
+                <span class="rating-display">{{avgHostRating}}</span>
+              {{else}}
+                --
+              {{/if}}
+            </div>
+            <div class="stat-label">HOST RATING</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="stat-box">
+            <div class="stat-value">{{hostReviewCount}}</div>
+            <div class="stat-label">REVIEWS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cuff-section">
+        <div class="cuff-section-title">RSVP</div>
+        <button class="btn-cuff-action" id="rsvp-btn" onclick="handleRsvp()">
+          RSVP TO THIS EVENT
+        </button>
+        <div style="font-size:0.65rem; color:var(--cuff-muted); margin-top:0.5rem; text-align:center;">
+          {{guestCount}} people are going
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div id="toast-container">
+  <div class="cuff-toast" id="cuff-toast"></div>
+</div>
+
+<script>
+  function handleRsvp() {
+    var btn = document.getElementById('rsvp-btn');
+    btn.disabled = true;
+    btn.textContent = "YOU'RE GOING!";
+    showToast('RSVP confirmed!');
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('cuff-toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2800);
+  }
+</script>
