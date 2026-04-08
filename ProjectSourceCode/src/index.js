@@ -3,7 +3,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const bcrypt = require('bcrypt');
 const session = require('express-session');
 const hbs = require('hbs');
 const pgp = require('pg-promise')();
@@ -29,10 +28,10 @@ app.use(express.static(path.join(__dirname, 'resources')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 24 hours
+  secret: process.env.SESSION_SECRET || 'super_secret_key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 24 hours
 }));
 
 // Make session user available in all HBS templates
@@ -69,7 +68,7 @@ app.post('/register', async (req, res) => {
 
     // Basic validation
     if (!first_name || !last_name || !email || !password) {
-        return res.render('pages/register', { error: 'All fields are required.' });
+        return res.status(400).render('pages/register', { error: 'All fields are required.' });
     }
     if (password !== confirm_password) {
         return res.render('pages/register', { error: 'Passwords do not match.' });
@@ -550,30 +549,6 @@ app.get('/search', async (req, res) => {
 // Start server
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
-});
-
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password || typeof username !== 'string') {
-    return res.status(400).json({ message: 'Invalid input' });
-  }
-
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    
-    const query = `
-      INSERT INTO user_data (email, password, first_name, last_name) 
-      VALUES ($1, $2, 'Test', 'User') RETURNING *;
-    `;
-    
-    await db.one(query, [username, hash]);
-    res.status(200).json({ message: 'Success' });
-    
-  } catch (error) {
-    console.error('Registration Error:', error);
-    res.status(400).json({ message: 'Invalid input' });
-  }
 });
 
 module.exports = app;
