@@ -1,62 +1,23 @@
 {{!< main}}
 <div class="container" style="max-width:1100px; padding-top:2rem; padding-bottom:5rem;">
 
-  <!-- Hero Section -->
-  <div class="cuff-section mb-4" style="border:2px solid var(--cuff-navy); padding:2rem 1.5rem;">
-    <div class="d-flex align-items-center gap-3 mb-3">
-      <div class="page-title-bar"></div>
-      <h1 class="page-title mb-0">CU FUNCTION FINDER</h1>
-    </div>
-    <p style="font-size:0.8rem; color:var(--cuff-muted); margin-bottom:1.25rem; max-width:600px;">
-      Discover events happening around CU Boulder. Browse what's coming up, RSVP, or host your own.
-    </p>
-    <div class="d-flex flex-wrap gap-2">
-      {{#if sessionUser}}
-        <a href="/search" class="btn-cuff-primary" style="text-decoration:none;">BROWSE EVENTS</a>
-        <a href="/events/new" class="btn-cuff-outline" style="text-decoration:none;">+ CREATE EVENT</a>
-      {{else}}
-        <a href="/register" class="btn-cuff-primary" style="text-decoration:none;">SIGN UP</a>
-        <a href="/login" class="btn-cuff-outline" style="text-decoration:none;">LOG IN</a>
-      {{/if}}
-    </div>
-  </div>
-
   <div class="row g-4">
 
     <!-- Main Column: Events -->
     <div class="col-lg-8">
 
-      <!-- Search & Filter Bar -->
-      <form method="GET" action="/home" class="mb-4">
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-          <input
-            type="text"
-            name="q"
-            class="cuff-input flex-grow-1"
-            placeholder="Search events..."
-            value="{{searchQuery}}"
-            style="max-width:400px;"
-          />
-          <label style="font-size:0.7rem; color:var(--cuff-muted); display:flex; align-items:center; gap:4px; cursor:pointer;">
-            <input type="checkbox" name="free" value="1" {{#if freeOnly}}checked{{/if}} style="accent-color:var(--cuff-navy);" />
-            FREE ONLY
-          </label>
-          <button type="submit" class="btn-cuff-primary">SEARCH</button>
-        </div>
-      </form>
 
-      <!-- Section Title -->
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin:0;">
-          {{#if searchQuery}}
-            RESULTS FOR "{{searchQuery}}"
-          {{else}}
-            UPCOMING EVENTS
-          {{/if}}
-        </h2>
-        <span style="font-size:0.7rem; color:var(--cuff-muted);">
-          {{events.length}} event{{#unless singleEvent}}s{{/unless}}
-        </span>
+
+      <!-- Filter Tags -->
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="/home" class="filter-tag {{#unless activeTag}}active{{/unless}}" style="text-decoration:none;">ALL</a>
+        <a href="/home?tag=free" class="filter-tag {{#if tagFree}}active{{/if}}" style="text-decoration:none;">🆓 FREE</a>
+        <a href="/home?tag=weekend" class="filter-tag {{#if tagWeekend}}active{{/if}}" style="text-decoration:none;">📅 THIS WEEKEND</a>
+        <a href="/home?tag=sports" class="filter-tag {{#if tagSports}}active{{/if}}" style="text-decoration:none;">⚽ SPORTS</a>
+        <a href="/home?tag=music" class="filter-tag {{#if tagMusic}}active{{/if}}" style="text-decoration:none;">🎵 MUSIC</a>
+        <a href="/home?tag=food" class="filter-tag {{#if tagFood}}active{{/if}}" style="text-decoration:none;">🍕 FOOD</a>
+        <a href="/home?tag=party" class="filter-tag {{#if tagParty}}active{{/if}}" style="text-decoration:none;">🎉 PARTY</a>
+        <a href="/home?tag=study" class="filter-tag {{#if tagStudy}}active{{/if}}" style="text-decoration:none;">📚 STUDY</a>
       </div>
       <hr style="border-color:var(--cuff-border); margin-bottom:1rem;" />
 
@@ -152,8 +113,8 @@
       {{else}}
         <div class="empty-state">
           <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
-          {{#if searchQuery}}
-            No events match "{{searchQuery}}". Try a different search.
+          {{#if activeTag}}
+            No events match the "{{activeTag}}" filter. Try a different tag.
           {{else}}
             No upcoming events yet. Check back soon!
           {{/if}}
@@ -200,9 +161,32 @@
       5. Add friend request notifications to the notifications
          system (type: 'friend_request', 'friend_accept').
     -->
-    <!-- Sidebar: Friends Activity -->
+    <!-- Sidebar -->
     <div class="col-lg-4">
-      <div class="cuff-section" style="position:sticky; top:72px;">
+      <div style="position:sticky; top:72px; display:flex; flex-direction:column; gap:1rem;">
+
+      <div class="cuff-section">
+        <div class="cuff-section-title">
+          <i class="bi bi-plus-circle-fill" style="font-size:0.7rem;"></i>
+          HOST AN EVENT
+        </div>
+        {{#if sessionUser}}
+          <p style="font-size:0.75rem; color:var(--cuff-muted); margin-bottom:1rem;">
+            Got something planned? Create your own event and share it with the CU community.
+          </p>
+          <a href="/events/new" class="btn-cuff-primary" style="text-decoration:none; display:block; text-align:center;">+ CREATE EVENT</a>
+        {{else}}
+          <div style="text-align:center; padding:1.5rem 0.5rem;">
+            <i class="bi bi-calendar-plus" style="font-size:1.5rem; color:var(--cuff-gray-light);"></i>
+            <p style="font-size:0.75rem; color:var(--cuff-muted); margin:0.75rem 0 1rem;">
+              Log in to create and host your own events.
+            </p>
+            <a href="/login" class="btn-cuff-outline" style="text-decoration:none; font-size:0.7rem;">LOG IN</a>
+          </div>
+        {{/if}}
+      </div>
+
+      <div class="cuff-section">
         <div class="cuff-section-title">
           <i class="bi bi-people-fill" style="font-size:0.7rem;"></i>
           FRIENDS ACTIVITY
@@ -232,6 +216,8 @@
             <a href="/login" class="btn-cuff-outline" style="text-decoration:none; font-size:0.7rem;">LOG IN</a>
           </div>
         {{/if}}
+      </div>
+
       </div>
     </div>
 
