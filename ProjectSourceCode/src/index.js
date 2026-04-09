@@ -155,7 +155,15 @@ app.get('/logout', (req, res) => {
 // HOMEPAGE/MAIN EVENTS PAGE API CALLS
 // GET home (show upcoming events, optionally filtered by search query)
 app.get('/home', async (req, res) => {
-    const { q, free } = req.query;
+    const { tag } = req.query;
+
+    const tagKeywords = {
+        sports: ['sport', 'basketball', 'football', 'soccer', 'volleyball', 'tennis', 'baseball', 'gym', 'fitness', 'athletic', 'tournament', 'game day', 'intramural'],
+        music: ['music', 'concert', 'band', 'dj', 'live music', 'open mic', 'karaoke', 'festival', 'rave', 'jam'],
+        food: ['food', 'dinner', 'lunch', 'brunch', 'cook', 'bake', 'bbq', 'potluck', 'taco', 'pizza', 'eat'],
+        party: ['party', 'rave', 'mixer', 'social', 'kickback', 'celebration', 'neon', 'dance', 'nightlife'],
+        study: ['study', 'tutor', 'homework', 'exam', 'review session', 'library', 'academic', 'class', 'lecture', 'workshop'],
+    };
 
     let query = `
         SELECT e.event_id, e.event_name, e.event_details, e.event_time, e.event_cost,
@@ -170,23 +178,37 @@ app.get('/home', async (req, res) => {
     `;
     const params = [];
 
-    if (q) {
-        params.push(`%${q}%`);
-        query += ` AND (e.event_name ILIKE $${params.length} OR e.event_details ILIKE $${params.length})`;
-    }
-    if (free === '1') {
+    if (tag === 'free') {
         query += ` AND e.event_cost = 0`;
+    } else if (tag === 'weekend') {
+        query += ` AND e.event_time >= date_trunc('week', NOW()) + INTERVAL '5 days'
+                   AND e.event_time < date_trunc('week', NOW()) + INTERVAL '8 days'`;
+    } else if (tag && tagKeywords[tag]) {
+        const words = tagKeywords[tag];
+        const conditions = words.map(w => {
+            params.push(`%${w}%`);
+            return `(e.event_name ILIKE $${params.length} OR e.event_details ILIKE $${params.length})`;
+        });
+        query += ` AND (${conditions.join(' OR ')})`;
     }
 
     query += ` GROUP BY e.event_id, u.first_name, u.last_name, l.street, l.building_number
-               ORDER BY e.event_time ASC`;
+               ORDER BY e.event_time DESC`;
+
+    const activeTag = tag ? tag.toUpperCase() : '';
 
     try {
         const events = await db.any(query, params);
         res.render('pages/home', {
             events,
-            searchQuery: q || '',
-            freeOnly: free === '1',
+            activeTag,
+            tagFree: tag === 'free',
+            tagWeekend: tag === 'weekend',
+            tagSports: tag === 'sports',
+            tagMusic: tag === 'music',
+            tagFood: tag === 'food',
+            tagParty: tag === 'party',
+            tagStudy: tag === 'study',
             sessionUser: req.session.user,
         });
     } catch (err) {
@@ -223,6 +245,21 @@ app.get('/events/:id', async (req, res) => {
             WHERE etg.event_id = $1`, [eventId]
         );
 
+        // Fetch host info
+        const host = event.host_id
+            ? await db.oneOrNone(`SELECT user_id, first_name, last_name FROM user_data WHERE user_id = $1`, [event.host_id])
+            : null;
+        const hostInitials = host ? (host.first_name[0] + host.last_name[0]).toUpperCase() : '';
+
+        // Fetch average host rating
+        const hostRatingRow = event.host_id
+            ? await db.oneOrNone(
+                `SELECT ROUND(AVG(rating), 1) AS avg_rating FROM reviews WHERE reviewed_id = $1 AND review_type = 'host'`,
+                [event.host_id]
+              )
+            : null;
+        const avgHostRating = hostRatingRow?.avg_rating || null;
+
         // Is the logged-in user already RSVP'd?
         const userId = req.session.user?.user_id;
         const alreadyRsvpd = guests.some(g => g.user_id === userId);
@@ -230,8 +267,13 @@ app.get('/events/:id', async (req, res) => {
 
         res.render('pages/event', {
             event,
+            host,
+            hostInitials,
             guests,
+            guestCount: guests.length,
             rsvpCount: guests.length,
+            isFree: !event.event_cost || parseFloat(event.event_cost) === 0,
+            avgHostRating,
             alreadyRsvpd,
             isHost,
             sessionUser: req.session.user,
