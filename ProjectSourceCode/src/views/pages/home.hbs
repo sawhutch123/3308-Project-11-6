@@ -1,0 +1,240 @@
+{{!< main}}
+<div class="container" style="max-width:1100px; padding-top:2rem; padding-bottom:5rem;">
+
+  <!-- Hero Section -->
+  <div class="cuff-section mb-4" style="border:2px solid var(--cuff-navy); padding:2rem 1.5rem;">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="page-title-bar"></div>
+      <h1 class="page-title mb-0">CU FUNCTION FINDER</h1>
+    </div>
+    <p style="font-size:0.8rem; color:var(--cuff-muted); margin-bottom:1.25rem; max-width:600px;">
+      Discover events happening around CU Boulder. Browse what's coming up, RSVP, or host your own.
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+      {{#if sessionUser}}
+        <a href="/search" class="btn-cuff-primary" style="text-decoration:none;">BROWSE EVENTS</a>
+        <a href="/events/new" class="btn-cuff-outline" style="text-decoration:none;">+ CREATE EVENT</a>
+      {{else}}
+        <a href="/register" class="btn-cuff-primary" style="text-decoration:none;">SIGN UP</a>
+        <a href="/login" class="btn-cuff-outline" style="text-decoration:none;">LOG IN</a>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Main Column: Events -->
+    <div class="col-lg-8">
+
+      <!-- Search & Filter Bar -->
+      <form method="GET" action="/home" class="mb-4">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <input
+            type="text"
+            name="q"
+            class="cuff-input flex-grow-1"
+            placeholder="Search events..."
+            value="{{searchQuery}}"
+            style="max-width:400px;"
+          />
+          <label style="font-size:0.7rem; color:var(--cuff-muted); display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" name="free" value="1" {{#if freeOnly}}checked{{/if}} style="accent-color:var(--cuff-navy);" />
+            FREE ONLY
+          </label>
+          <button type="submit" class="btn-cuff-primary">SEARCH</button>
+        </div>
+      </form>
+
+      <!-- Section Title -->
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin:0;">
+          {{#if searchQuery}}
+            RESULTS FOR "{{searchQuery}}"
+          {{else}}
+            UPCOMING EVENTS
+          {{/if}}
+        </h2>
+        <span style="font-size:0.7rem; color:var(--cuff-muted);">
+          {{events.length}} event{{#unless singleEvent}}s{{/unless}}
+        </span>
+      </div>
+      <hr style="border-color:var(--cuff-border); margin-bottom:1rem;" />
+
+      <!-- Event Cards -->
+      {{#if events}}
+        <div class="d-flex flex-column gap-3">
+          {{#each events}}
+            <a href="/events/{{this.event_id}}" style="text-decoration:none; color:inherit;">
+              <div class="cuff-card" style="padding:0; overflow:hidden;">
+                <!-- Wide image banner -->
+                <div style="width:100%; height:140px; background:var(--cuff-navy-light); display:flex; align-items:center; justify-content:center; border-bottom:2px solid var(--cuff-border);">
+                  <i class="bi bi-calendar-event" style="font-size:2.5rem; color:var(--cuff-gray-mid); opacity:0.5;"></i>
+                </div>
+                <!-- Card body -->
+                <div style="padding:1rem;">
+                  <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                    <div style="font-size:0.85rem; font-weight:700;">
+                      {{this.event_name}}
+                    </div>
+                    {{#if this.event_cost}}
+                      <span style="font-size:0.7rem; font-weight:700; background:var(--cuff-surface); border:1px solid var(--cuff-border); padding:2px 8px; white-space:nowrap;">
+                        ${{this.event_cost}}
+                      </span>
+                    {{else}}
+                      <span style="font-size:0.7rem; font-weight:700; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:2px 8px; white-space:nowrap;">
+                        FREE
+                      </span>
+                    {{/if}}
+                  </div>
+                  <div style="font-size:0.7rem; color:var(--cuff-muted); margin-bottom:8px;">
+                    <i class="bi bi-clock" style="font-size:0.65rem;"></i>
+                    {{this.event_time}}
+                    {{#if this.location_text}}
+                      &middot;
+                      <i class="bi bi-geo-alt" style="font-size:0.65rem;"></i>
+                      {{this.location_text}}
+                    {{/if}}
+                  </div>
+                  {{#if this.event_details}}
+                    <p style="font-size:0.75rem; color:var(--cuff-text); margin-bottom:8px; line-height:1.5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                      {{this.event_details}}
+                    </p>
+                  {{/if}}
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex flex-wrap gap-3" style="font-size:0.7rem; color:var(--cuff-muted);">
+                      <span>
+                        <i class="bi bi-person" style="font-size:0.65rem;"></i>
+                        {{this.host_name}}
+                      </span>
+                      <span>
+                        <i class="bi bi-people" style="font-size:0.65rem;"></i>
+                        {{this.rsvp_count}} attending
+                      </span>
+                    </div>
+                    <!--
+                      TODO [FRIENDS]: Friends attending per event card
+                      ─────────────────────────────────────────────────
+                      When friend functionality is built:
+
+                      1. DB: Create a "friends" table (e.g. user_id, friend_id, status)
+                         to track friend relationships.
+
+                      2. Backend (index.js GET /home): For each event, query which of
+                         the logged-in user's friends are in events_to_guests for that
+                         event. Pass a "friends_attending" array on each event object,
+                         e.g. { first_name, last_name, user_id }.
+
+                      3. Template: Replace the static placeholder avatars below with
+                         an {{#each this.friends_attending}} loop. Render each friend's
+                         initials inside the avatar-sm div. Show the count like
+                         "3 friends going" instead of the generic label.
+
+                      4. Hide this section entirely if the user is not logged in
+                         (wrap in {{#if ../sessionUser}}) or if friends_attending
+                         is empty.
+                    -->
+                    <div class="d-flex align-items-center gap-1">
+                      <div style="display:flex; margin-right:4px;">
+                        <div class="avatar-sm" style="background:var(--cuff-gray-dark); width:22px; height:22px; border:2px solid var(--cuff-white);"></div>
+                        <div class="avatar-sm" style="background:var(--cuff-gray-mid); width:22px; height:22px; border:2px solid var(--cuff-white); margin-left:-8px;"></div>
+                        <div class="avatar-sm" style="background:var(--cuff-gray-light); width:22px; height:22px; border:2px solid var(--cuff-white); margin-left:-8px;"></div>
+                      </div>
+                      <span style="font-size:0.65rem; color:var(--cuff-muted);">
+                        Friends going
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
+          {{#if searchQuery}}
+            No events match "{{searchQuery}}". Try a different search.
+          {{else}}
+            No upcoming events yet. Check back soon!
+          {{/if}}
+        </div>
+      {{/if}}
+
+    </div>
+
+    <!--
+      TODO [FRIENDS]: Friends Activity Sidebar
+      ─────────────────────────────────────────
+      When friend functionality is built:
+
+      1. DB: Create a "friends" table with columns like:
+           user_id (FK -> user_data), friend_id (FK -> user_data),
+           status ('pending', 'accepted'), created_at.
+         Add a unique constraint on (user_id, friend_id) to prevent
+         duplicate friend requests.
+
+      2. Backend (index.js GET /home): Query the logged-in user's
+         accepted friends and their recent RSVP activity. Example:
+           SELECT u.user_id, u.first_name, u.last_name,
+                  e.event_id, e.event_name, etg.created_at
+           FROM friends f
+           JOIN user_data u ON f.friend_id = u.user_id
+           JOIN events_to_guests etg ON u.user_id = etg.guest_id
+           JOIN events e ON etg.event_id = e.event_id
+           WHERE f.user_id = $1 AND f.status = 'accepted'
+           ORDER BY etg.created_at DESC LIMIT 10
+         Pass the result as "friendActivity" to the template.
+
+      3. Template: Replace the placeholder div below with an
+         {{#each friendActivity}} loop. Each item should show:
+           - Friend's avatar (initials in avatar-sm)
+           - Friend's name (link to /user/:id)
+           - Activity text, e.g. "RSVPd to Event Name"
+           - Timestamp (relative, e.g. "2h ago")
+         Keep the empty state for when the user has friends but
+         none have recent activity.
+
+      4. Also consider adding a "friend suggestions" section below
+         the activity feed, e.g. users who attend similar events.
+
+      5. Add friend request notifications to the notifications
+         system (type: 'friend_request', 'friend_accept').
+    -->
+    <!-- Sidebar: Friends Activity -->
+    <div class="col-lg-4">
+      <div class="cuff-section" style="position:sticky; top:72px;">
+        <div class="cuff-section-title">
+          <i class="bi bi-people-fill" style="font-size:0.7rem;"></i>
+          FRIENDS ACTIVITY
+        </div>
+
+        {{#if sessionUser}}
+          <div class="d-flex flex-column gap-3">
+            <!-- Placeholder items — replace with {{#each friendActivity}} loop -->
+            <div class="d-flex gap-2 align-items-start" style="opacity:0.5;">
+              <div class="avatar-sm" style="background:var(--cuff-gray-dark);"></div>
+              <div style="min-width:0;">
+                <div style="font-size:0.75rem; color:var(--cuff-text);">
+                  No friend activity yet.
+                </div>
+                <div style="font-size:0.65rem; color:var(--cuff-muted); margin-top:2px;">
+                  Add friends to see what events they're attending.
+                </div>
+              </div>
+            </div>
+          </div>
+        {{else}}
+          <div style="text-align:center; padding:1.5rem 0.5rem;">
+            <i class="bi bi-person-plus" style="font-size:1.5rem; color:var(--cuff-gray-light);"></i>
+            <p style="font-size:0.75rem; color:var(--cuff-muted); margin:0.75rem 0 1rem;">
+              Log in to see what your friends are up to.
+            </p>
+            <a href="/login" class="btn-cuff-outline" style="text-decoration:none; font-size:0.7rem;">LOG IN</a>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+
+  </div>
+
+</div>
