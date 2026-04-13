@@ -33,6 +33,10 @@ CREATE TABLE IF NOT EXISTS events (
     event_cost DECIMAL(10,2) DEFAULT 0.00,
     event_time TIMESTAMP NOT NULL,
     event_host INT,
+    event_type VARCHAR(10) DEFAULT 'public',
+    max_capacity INT,
+    guest_approval VARCHAR(10) DEFAULT 'auto',
+    status VARCHAR(12) DEFAULT 'active',
     CONSTRAINT fk_host FOREIGN KEY (event_host) REFERENCES user_data(user_id),
     CONSTRAINT fk_event_location FOREIGN KEY (location_id) REFERENCES locations(location_id)
 );

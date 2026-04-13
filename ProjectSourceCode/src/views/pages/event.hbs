@@ -145,15 +145,51 @@
         {{/if}}
       </div>
 
+      {{#if isHost}}
+      <div class="cuff-section mb-4">
+        <div class="cuff-section-title">HOST CONTROLS</div>
+        <div class="d-flex flex-column gap-2">
+          <a href="/events/{{event.event_id}}/edit" class="btn-cuff-action" style="font-size:0.75rem; text-align:center; text-decoration:none; display:block;">
+            [ EDIT EVENT ]
+          </a>
+          {{#unless isCancelled}}
+          <form method="POST" action="/events/{{event.event_id}}/cancel" onsubmit="return confirm('Are you sure you want to cancel this event? All guests will be notified.');">
+            <button type="submit" class="btn-cuff-outline" style="font-size:0.72rem; width:100%; border-color:#991b1b; color:#991b1b;">
+              [ CANCEL EVENT ]
+            </button>
+          </form>
+          {{/unless}}
+        </div>
+        {{#if maxCapacity}}
+        <div style="font-size:0.65rem; color:var(--cuff-muted); margin-top:0.5rem; text-align:center;">
+          {{guestCount}} / {{maxCapacity}} spots filled
+        </div>
+        {{/if}}
+      </div>
+      {{/if}}
+
       <div class="cuff-section mb-4">
         <div class="cuff-section-title">RSVP</div>
-        <button class="btn-cuff-action" id="rsvp-btn" onclick="handleRsvp()">
-          RSVP TO THIS EVENT
-        </button>
+        {{#if isCancelled}}
+          <div style="font-family:'Space Mono',monospace; font-size:0.8rem; font-weight:700; color:#991b1b; text-align:center; padding:0.75rem; border:1px solid #991b1b;">
+            EVENT CANCELLED
+          </div>
+        {{else if isFull}}
+          <div style="font-family:'Space Mono',monospace; font-size:0.8rem; font-weight:700; color:var(--cuff-muted); text-align:center; padding:0.75rem; border:1px solid var(--cuff-border);">
+            EVENT FULL
+          </div>
+        {{else}}
+          <button class="btn-cuff-action" id="rsvp-btn" onclick="handleRsvp()">
+            RSVP TO THIS EVENT
+          </button>
+        {{/if}}
         <div
           style="font-size:0.65rem; color:var(--cuff-muted); margin-top:0.5rem; text-align:center;"
         >
           {{rsvpCount}} people are going
+          {{#if maxCapacity}}
+            (max {{maxCapacity}})
+          {{/if}}
         </div>
       </div>
 
@@ -247,16 +283,27 @@
           {{#if guests}}
             <div class="d-flex flex-column gap-2" style="max-height:280px; overflow-y:auto;">
               {{#each guests}}
-                <a href="/user/{{this.user_id}}" style="text-decoration:none; color:inherit;">
-                  <div class="d-flex align-items-center gap-2" style="padding:4px 0;">
-                    <div class="avatar-sm" style="background:var(--cuff-gray-dark); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:700; width:28px; height:28px;">
-                      {{this.first_name.[0]}}{{this.last_name.[0]}}
+                <div class="d-flex align-items-center justify-content-between" style="padding:4px 0;">
+                  <a href="/user/{{this.user_id}}" style="text-decoration:none; color:inherit;">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="avatar-sm" style="background:var(--cuff-gray-dark); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:700; width:28px; height:28px;">
+                        {{this.first_name.[0]}}{{this.last_name.[0]}}
+                      </div>
+                      <div style="font-size:0.75rem; font-weight:400;">
+                        {{this.first_name}} {{this.last_name}}
+                      </div>
                     </div>
-                    <div style="font-size:0.75rem; font-weight:400;">
-                      {{this.first_name}} {{this.last_name}}
-                    </div>
-                  </div>
-                </a>
+                  </a>
+                  {{#if ../isHost}}
+                    <form method="POST" action="/events/{{../event.event_id}}/remove-guest" style="margin:0;"
+                          onsubmit="return confirm('Remove {{this.first_name}} {{this.last_name}} from this event?');">
+                      <input type="hidden" name="guest_id" value="{{this.user_id}}" />
+                      <button type="submit" style="background:none; border:none; color:#991b1b; cursor:pointer; font-size:0.65rem; font-family:'Space Mono',monospace; padding:2px 6px;">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                    </form>
+                  {{/if}}
+                </div>
               {{/each}}
             </div>
           {{else}}
