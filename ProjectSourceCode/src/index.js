@@ -8,7 +8,16 @@ const session = require('express-session');
 const hbs = require('hbs');
 const pgp = require('pg-promise')();
 const app = express();
+<<<<<<< Updated upstream
 const bcrypt = require('bcryptjs');
+=======
+const stripeRoutes = require('./routes/stripeRoutes');
+
+app.use(express.json());
+app.use('/api/stripe', stripeRoutes);
+
+
+>>>>>>> Stashed changes
 // Database connection
 const db = pgp({
     host: process.env.POSTGRES_HOST || 'db',
