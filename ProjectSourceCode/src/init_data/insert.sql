@@ -24,10 +24,10 @@ INSERT INTO locations (street, building_number, apartment_number, zip_code) VALU
     ('University Ave', 1234, NULL, 80302),
     ('Pearl St', 500, 12, 80302);
 
-INSERT INTO events (event_name, event_details, location_id, event_cost, event_time, event_host) VALUES
-    ('Study Session', 'CSCI 3308 group study', 1, 0.00, '2026-04-10 18:00:00', 1),
-    ('Game Night', 'Board games and pizza', 2, 5.00, '2026-04-12 20:00:00', 1),
-    ('Hiking Trip', 'Flatirons hike meetup', 1, 0.00, '2026-04-15 09:00:00', 2);
+INSERT INTO events (event_name, event_details, location_id, event_cost, event_start_time, event_end_time, event_host) VALUES
+    ('Study Session', 'CSCI 3308 group study', 1, 0.00, '2026-06-10 18:00:00', '2026-06-10 20:00:00', 1),
+    ('Game Night', 'Board games and pizza', 2, 5.00, '2026-06-12 20:00:00', '2026-06-12 22:00:00', 1),
+    ('Hiking Trip', 'Flatirons hike meetup', 1, 0.00, '2026-06-15 09:00:00', '2026-06-15 12:00:00', 2);
 
 INSERT INTO events_to_guests (event_id, guest_id) VALUES
     (1, 2),

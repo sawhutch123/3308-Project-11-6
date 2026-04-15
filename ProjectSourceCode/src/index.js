@@ -24,6 +24,21 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view options', { layout: 'layouts/main' });
 hbs.registerPartials(path.join(__dirname, 'views/partials'));
 
+// Handlebars helpers
+hbs.registerHelper('formatTime', function (timestamp) {
+    if (!timestamp) return '';
+    const d = new Date(timestamp);
+    return d.toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    });
+});
+
 // Middleware
 app.use(express.static(path.join(__dirname, 'resources')));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -168,7 +183,7 @@ app.get('/home', async (req, res) => {
     };
 
     let query = `
-        SELECT e.event_id, e.event_name, e.event_details, e.event_time, e.event_cost,
+        SELECT e.event_id, e.event_name, e.event_details, e.event_start_time, e.event_end_time, e.event_cost,
                u.first_name || ' ' || u.last_name AS host_name,
                l.street || ' ' || l.building_number AS location_text,
                COUNT(etg.guest_id) AS rsvp_count
@@ -176,7 +191,7 @@ app.get('/home', async (req, res) => {
         LEFT JOIN user_data u ON e.event_host = u.user_id
         LEFT JOIN locations l ON e.location_id = l.location_id
         LEFT JOIN events_to_guests etg ON e.event_id = etg.event_id
-        WHERE e.event_time >= NOW()
+        WHERE e.event_start_time >= NOW()
           AND (e.status IS NULL OR e.status = 'active')
     `;
     const params = [];
@@ -184,8 +199,8 @@ app.get('/home', async (req, res) => {
     if (tag === 'free') {
         query += ` AND e.event_cost = 0`;
     } else if (tag === 'weekend') {
-        query += ` AND e.event_time >= date_trunc('week', NOW()) + INTERVAL '5 days'
-                   AND e.event_time < date_trunc('week', NOW()) + INTERVAL '8 days'`;
+        query += ` AND e.event_start_time >= date_trunc('week', NOW()) + INTERVAL '5 days'
+                   AND e.event_start_time < date_trunc('week', NOW()) + INTERVAL '8 days'`;
     } else if (tag && tagKeywords[tag]) {
         const words = tagKeywords[tag];
         const conditions = words.map(w => {
@@ -196,7 +211,7 @@ app.get('/home', async (req, res) => {
     }
 
     query += ` GROUP BY e.event_id, u.first_name, u.last_name, l.street, l.building_number
-               ORDER BY e.event_time DESC`;
+               ORDER BY e.event_start_time DESC`;
 
     const activeTag = tag ? tag.toUpperCase() : '';
 
@@ -222,6 +237,45 @@ app.get('/home', async (req, res) => {
 
 // ----------------------------------------------------------------------------------------------
 // EVENT PAGE API CALLS (Implemented RSVPing for an event thats free or paid through Stripe)
+
+// GET events/new (create event form - user auth required)
+app.get('/events/new', requireAuth, (req, res) => {
+    res.render('pages/event_new');
+});
+// POST events/new (save a new event - user auth required)
+app.post('/events/new', requireAuth, async (req, res) => {
+    const { event_name, event_details, event_start_time, event_end_time, event_cost, street, building_number, apartment_number, zip_code,
+            event_type, capacity, guest_approval, action } = req.body;
+
+    if (!event_name || !event_start_time) {
+        return res.render('pages/event_new', { error: 'Event name and time are required.' });
+    }
+
+    const status = action === 'draft' ? 'draft' : 'active';
+
+    try {
+        const location = await db.one(
+            `INSERT INTO locations (street, building_number, apartment_number, zip_code)
+             VALUES ($1, $2, $3, $4) RETURNING location_id`,
+            [street, parseInt(building_number), apartment_number ? parseInt(apartment_number) : null, parseInt(zip_code)]
+        );
+
+        const newEvent = await db.one(
+            `INSERT INTO events (event_name, event_details, location_id, event_cost, event_start_time, event_end_time, event_host,
+                                 event_type, max_capacity, guest_approval, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING event_id`,
+            [event_name, event_details, location.location_id, parseFloat(event_cost) || 0, event_start_time,
+             event_end_time || null, req.session.user.user_id, event_type || 'public', capacity ? parseInt(capacity) : null,
+             guest_approval || 'auto', status]
+        );
+
+        res.redirect(`/events/${newEvent.event_id}`);
+    } catch (err) {
+        console.error('Create event error:', err);
+        res.render('pages/event_new', { error: 'Could not create event. Check all fields.' });
+    }
+});
+
 // GET events/:id (event detail page by event id)
 app.get('/events/:id', async (req, res) => {
     const eventId = parseInt(req.params.id);
@@ -290,43 +344,6 @@ app.get('/events/:id', async (req, res) => {
     } catch (err) {
         console.error('Event detail error:', err);
         res.status(500).send('Server error');
-    }
-});
-// GET events/new (create event form - user auth required)
-app.get('/events/new', requireAuth, (req, res) => {
-    res.render('pages/event_new');
-});
-// POST events/new (save a new event - user auth required)
-app.post('/events/new', requireAuth, async (req, res) => {
-    const { event_name, event_details, event_time, event_cost, street, building_number, apartment_number, zip_code,
-            event_type, capacity, guest_approval, action } = req.body;
-
-    if (!event_name || !event_time) {
-        return res.render('pages/event_new', { error: 'Event name and time are required.' });
-    }
-
-    const status = action === 'draft' ? 'draft' : 'active';
-
-    try {
-        const location = await db.one(
-            `INSERT INTO locations (street, building_number, apartment_number, zip_code)
-             VALUES ($1, $2, $3, $4) RETURNING location_id`,
-            [street, parseInt(building_number), apartment_number ? parseInt(apartment_number) : null, parseInt(zip_code)]
-        );
-
-        const newEvent = await db.one(
-            `INSERT INTO events (event_name, event_details, location_id, event_cost, event_time, event_host,
-                                 event_type, max_capacity, guest_approval, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING event_id`,
-            [event_name, event_details, location.location_id, parseFloat(event_cost) || 0, event_time,
-             req.session.user.user_id, event_type || 'public', capacity ? parseInt(capacity) : null,
-             guest_approval || 'auto', status]
-        );
-
-        res.redirect(`/events/${newEvent.event_id}`);
-    } catch (err) {
-        console.error('Create event error:', err);
-        res.render('pages/event_new', { error: 'Could not create event. Check all fields.' });
     }
 });
 // POST events/:id/rsvp (RSVP to a free event - user auth required)
@@ -455,13 +472,15 @@ app.get('/events/:id/edit', requireAuth, async (req, res) => {
             return res.redirect(`/events/${eventId}`);
         }
 
-        // Split event_time into date and time for the form inputs
-        const eventDate = event.event_time ? new Date(event.event_time) : null;
+        // Split event_start_time into date and time for the form inputs
+        const eventDate = event.event_start_time ? new Date(event.event_start_time) : null;
         const formDate = eventDate ? eventDate.toISOString().split('T')[0] : '';
         const formTime = eventDate ? eventDate.toTimeString().slice(0, 5) : '';
+        const endDate = event.event_end_time ? new Date(event.event_end_time) : null;
+        const formEndTime = endDate ? endDate.toTimeString().slice(0, 5) : '';
 
         res.render('pages/event_edit', {
-            event, formDate, formTime,
+            event, formDate, formTime, formEndTime,
             isPublic: event.event_type !== 'private',
             isPrivate: event.event_type === 'private',
             isAutoApproval: event.guest_approval !== 'manual',
@@ -484,10 +503,10 @@ app.post('/events/:id/edit', requireAuth, async (req, res) => {
             return res.redirect(`/events/${eventId}`);
         }
 
-        const { event_name, event_details, event_time, event_cost, street, building_number, apartment_number, zip_code,
+        const { event_name, event_details, event_start_time, event_end_time, event_cost, street, building_number, apartment_number, zip_code,
                 event_type, capacity, guest_approval } = req.body;
 
-        if (!event_name || !event_time) {
+        if (!event_name || !event_start_time) {
             return res.render('pages/event_edit', { event, error: 'Event name and time are required.' });
         }
 
@@ -501,15 +520,15 @@ app.post('/events/:id/edit', requireAuth, async (req, res) => {
 
         // Update event
         await db.none(
-            `UPDATE events SET event_name = $1, event_details = $2, event_time = $3, event_cost = $4,
-                               event_type = $5, max_capacity = $6, guest_approval = $7
-             WHERE event_id = $8`,
-            [event_name, event_details, event_time, parseFloat(event_cost) || 0,
+            `UPDATE events SET event_name = $1, event_details = $2, event_start_time = $3, event_end_time = $4, event_cost = $5,
+                               event_type = $6, max_capacity = $7, guest_approval = $8
+             WHERE event_id = $9`,
+            [event_name, event_details, event_start_time, event_end_time || null, parseFloat(event_cost) || 0,
              event_type || 'public', capacity ? parseInt(capacity) : null, guest_approval || 'auto', eventId]
         );
 
         // Notify guests if time or location changed
-        const timeChanged = event.event_time.toISOString() !== new Date(event_time).toISOString();
+        const timeChanged = event.event_start_time.toISOString() !== new Date(event_start_time).toISOString();
         const locationChanged = event.location_id && (street !== undefined);
         if (timeChanged || locationChanged) {
             const guests = await db.any('SELECT guest_id FROM events_to_guests WHERE event_id = $1', [eventId]);
@@ -623,14 +642,14 @@ app.get('/user/:id', async (req, res) => {
         );
 
         const eventsAttended = await db.any(
-            `SELECT e.event_id, e.event_name, e.event_details, e.event_time, e.event_cost
+            `SELECT e.event_id, e.event_name, e.event_details, e.event_start_time, e.event_end_time, e.event_cost
              FROM events e
              JOIN events_to_guests etg ON e.event_id = etg.event_id
-             WHERE etg.guest_id = $1 ORDER BY e.event_time DESC`, [userId]
+             WHERE etg.guest_id = $1 ORDER BY e.event_start_time DESC`, [userId]
         );
         const eventsHosted = await db.any(
-            `SELECT e.event_id, e.event_name, e.event_details, e.event_time, e.event_cost
-             FROM events e WHERE e.event_host = $1 ORDER BY e.event_time DESC`, [userId]
+            `SELECT e.event_id, e.event_name, e.event_details, e.event_start_time, e.event_end_time, e.event_cost
+             FROM events e WHERE e.event_host = $1 ORDER BY e.event_start_time DESC`, [userId]
         );
 
         const isOwnProfile = req.session.user?.user_id === userId;
@@ -742,12 +761,12 @@ app.get('/search', async (req, res) => {
     const term = `%${q.trim()}%`;
     try {
         const events = await db.any(
-            `SELECT e.event_id, e.event_name, e.event_details, e.event_time, e.event_cost,
+            `SELECT e.event_id, e.event_name, e.event_details, e.event_start_time, e.event_end_time, e.event_cost,
                     u.first_name || ' ' || u.last_name AS host_name
              FROM events e
              LEFT JOIN user_data u ON e.event_host = u.user_id
              WHERE e.event_name ILIKE $1 OR e.event_details ILIKE $1
-             ORDER BY e.event_time ASC LIMIT 20`, [term]
+             ORDER BY e.event_start_time ASC LIMIT 20`, [term]
         );
 
         const users = await db.any(

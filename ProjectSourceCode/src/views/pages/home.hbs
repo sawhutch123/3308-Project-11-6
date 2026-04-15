@@ -49,7 +49,7 @@
                   </div>
                   <div style="font-size:0.7rem; color:var(--cuff-muted); margin-bottom:8px;">
                     <i class="bi bi-clock" style="font-size:0.65rem;"></i>
-                    {{this.event_time}}
+                    {{formatTime this.event_start_time}}{{#if this.event_end_time}} – {{formatTime this.event_end_time}}{{/if}}
                     {{#if this.location_text}}
                       &middot;
                       <i class="bi bi-geo-alt" style="font-size:0.65rem;"></i>

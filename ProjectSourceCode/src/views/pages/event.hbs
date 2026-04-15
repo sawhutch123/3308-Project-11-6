@@ -17,7 +17,7 @@
     <div
       style="font-size:0.75rem; color:var(--cuff-muted); font-family:'Space Mono',monospace;"
     >
-      {{event.event_time}}
+      {{formatTime event.event_start_time}}{{#if event.event_end_time}} – {{formatTime event.event_end_time}}{{/if}}
       {{#unless isFree}}
         &middot; ${{event.event_cost}}
       {{else}}

@@ -169,7 +169,7 @@
                         <span class="search-public-tag">Public</span>
                       </div>
                       <div class="search-event-meta">
-                        <div><span>📅</span> {{this.event_time}}</div>
+                        <div><span>📅</span> {{formatTime this.event_start_time}}{{#if this.event_end_time}} – {{formatTime this.event_end_time}}{{/if}}</div>
                         <div><span>📍</span> {{this.location_text}}</div>
                         <div><span>👥</span> {{this.rsvp_count}} RSVP'd</div>
                       </div>

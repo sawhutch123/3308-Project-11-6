@@ -85,7 +85,7 @@
                       <div style="font-size:0.75rem; color:var(--cuff-muted); margin-top:2px;">{{this.event_details}}</div>
                     {{/if}}
                     <div style="font-size:0.7rem; color:var(--cuff-gray-light); margin-top:4px; font-family:'Space Mono',monospace;">
-                      {{this.event_time}}
+                      {{formatTime this.event_start_time}}{{#if this.event_end_time}} – {{formatTime this.event_end_time}}{{/if}}
                       {{#if this.event_cost}}
                         &middot; ${{this.event_cost}}
                       {{/if}}
@@ -143,7 +143,7 @@
                       <div style="font-size:0.75rem; color:var(--cuff-muted); margin-top:2px;">{{this.event_details}}</div>
                     {{/if}}
                     <div style="font-size:0.7rem; color:var(--cuff-gray-light); margin-top:4px; font-family:'Space Mono',monospace;">
-                      {{this.event_time}}
+                      {{formatTime this.event_start_time}}{{#if this.event_end_time}} – {{formatTime this.event_end_time}}{{/if}}
                       {{#if this.event_cost}}
                         &middot; ${{this.event_cost}}
                       {{/if}}

@@ -99,7 +99,7 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="creation-label">END TIME</label>
-              <input class="cuff-input" type="time" name="end_time" />
+              <input class="cuff-input" type="time" name="end_time" value="{{formEndTime}}" oninput="syncDatetime();" />
             </div>
             <div class="col-md-6">
               <label class="creation-label">CAPACITY (MAX GUESTS)</label>
@@ -109,8 +109,9 @@
             </div>
           </div>
 
-          <!-- Hidden combined datetime field for backend -->
-          <input type="hidden" name="event_time" id="event_time_combined" />
+          <!-- Hidden combined datetime fields for backend -->
+          <input type="hidden" name="event_start_time" id="event_start_time_combined" />
+          <input type="hidden" name="event_end_time" id="event_end_time_combined" />
 
           <div class="row g-3 mb-3">
             <div class="col-md-4">
@@ -311,9 +312,13 @@
   function syncDatetime() {
     var date = document.querySelector('[name=event_date]')?.value;
     var time = document.querySelector('[name=start_time]')?.value;
+    var endTime = document.querySelector('[name=end_time]')?.value;
     if (date && time) {
-      document.getElementById('event_time_combined').value = date + 'T' + time;
+      document.getElementById('event_start_time_combined').value = date + 'T' + time;
       document.getElementById('preview-date').textContent = date + ' at ' + time;
+    }
+    if (date && endTime) {
+      document.getElementById('event_end_time_combined').value = date + 'T' + endTime;
     }
   }
 
