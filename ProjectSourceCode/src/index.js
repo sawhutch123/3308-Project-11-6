@@ -8,8 +8,12 @@ const session = require('express-session');
 const hbs = require('hbs');
 const pgp = require('pg-promise')();
 const app = express();
+const stripeRoutes = require('./routes/stripeRoutes');
 
-// Database connection
+app.use(express.json());
+app.use('/api/stripe', stripeRoutes);
+
+
 const db = pgp({
     host: process.env.POSTGRES_HOST || 'db',
     port: 5432,
