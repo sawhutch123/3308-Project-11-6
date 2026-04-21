@@ -8,7 +8,7 @@
   </div>
   <hr style="border-color:var(--cuff-border); margin-bottom:2rem;" />
 
-  <!-- ── STEP 1: REGISTRATION FORM ── -->
+  <!-- REGISTRATION FORM -->
   <div class="cuff-section" style="padding:0; margin-bottom:1.5rem;">
 
     <!-- Card Header -->
@@ -26,14 +26,14 @@
         </span>
       </div>
 
-      <!-- Error message -->
+      <!-- Server-side error message -->
       {{#if error}}
         <div style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; font-family:'Space Mono',monospace; font-size:0.72rem; padding:0.65rem 0.9rem; margin-bottom:1.25rem;">
           {{error}}
         </div>
       {{/if}}
 
-      <form method="POST" action="/register">
+      <form method="POST" action="/register" enctype="multipart/form-data" onsubmit="return validateForm()">
 
         <!-- Profile Photo -->
         <div class="mb-4">
@@ -41,7 +41,7 @@
             PROFILE PHOTO
           </label>
           <div class="d-flex align-items-center gap-3">
-            <div id="photo-preview" style="width:72px; height:72px; border:1px solid var(--cuff-border); background:var(--cuff-surface); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; overflow:hidden;">
+            <div id="photo-preview" style="width:72px; height:72px; border:1px solid var(--cuff-border); background:var(--cuff-surface); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
               <div id="photo-placeholder" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;">
                 <div style="width:30px; height:30px; border:1px solid var(--cuff-gray-border); position:relative;">
                   <div style="position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden;">
@@ -54,22 +54,12 @@
               <img id="photo-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover;" />
             </div>
             <div>
-              <button
-                type="button"
-                class="btn-cuff-outline"
-                style="font-size:0.72rem; margin-bottom:0.4rem;"
-                onclick="document.getElementById('profile_photo_input').click()"
-              >
+              <button type="button" class="btn-cuff-outline" style="font-size:0.72rem; margin-bottom:0.4rem;"
+                onclick="document.getElementById('profile_photo_input').click()">
                 [ UPLOAD PHOTO ]
               </button>
-              <input
-                type="file"
-                id="profile_photo_input"
-                name="profile_photo"
-                accept="image/*"
-                style="display:none;"
-                onchange="previewPhoto(this)"
-              />
+              <input type="file" id="profile_photo_input" name="profile_photo" accept="image/*"
+                style="display:none;" onchange="previewPhoto(this)" />
               <div style="font-family:'Space Mono',monospace; font-size:0.68rem; color:var(--cuff-gray-light); font-style:italic;">
                 Optional — can add later in account settings
               </div>
@@ -92,16 +82,9 @@
         <!-- CU Boulder Email -->
         <div class="mb-3">
           <label class="reg-label">CU BOULDER EMAIL</label>
-          <input
-            class="cuff-input"
-            type="email"
-            name="email"
-            id="email-input"
-            placeholder="yourname@colorado.edu"
-            required
-            oninput="validateCUEmail(this)"
-          />
-          <div id="email-error" style="font-family:'Space Mono',monospace; font-size:0.68rem; color:#991b1b; margin-top:4px; display:none;">
+          <input class="cuff-input" type="email" name="email" id="email-input"
+            placeholder="yourname@colorado.edu" required oninput="validateCUEmail(this)" />
+          <div id="email-error" class="field-error" style="display:none;">
             Must be a @colorado.edu email address.
           </div>
         </div>
@@ -131,100 +114,53 @@
         <!-- Password -->
         <div class="mb-3">
           <label class="reg-label">PASSWORD</label>
-          <input
-            class="cuff-input"
-            type="password"
-            name="password"
-            id="password-input"
-            placeholder="Min 8 characters..."
-            minlength="8"
-            required
-            oninput="checkPasswordMatch()"
-          />
+          <input class="cuff-input" type="password" name="password" id="password-input"
+            placeholder="Min 8 characters..." required
+            oninput="checkPasswordStrength(this.value); checkPasswordMatch()" />
+
+          <!-- Live password requirements checklist -->
+          <div id="pw-requirements" style="margin-top:8px; border:1px solid var(--cuff-border); padding:0.65rem 0.85rem; background:var(--cuff-surface); display:none;">
+            <div class="req-row" id="req-length">  <span class="req-icon">☐</span> At least 8 characters</div>
+            <div class="req-row" id="req-upper">   <span class="req-icon">☐</span> At least one uppercase letter (A–Z)</div>
+            <div class="req-row" id="req-number">  <span class="req-icon">☐</span> At least one number (0–9)</div>
+            <div class="req-row" id="req-special"> <span class="req-icon">☐</span> At least one special character (!@#$%^&amp;*...)</div>
+          </div>
         </div>
 
         <!-- Confirm Password -->
         <div class="mb-4">
           <label class="reg-label">CONFIRM PASSWORD</label>
-          <input
-            class="cuff-input"
-            type="password"
-            name="confirm_password"
-            id="confirm-input"
-            placeholder="Re-enter password..."
-            required
-            oninput="checkPasswordMatch()"
-          />
+          <input class="cuff-input" type="password" name="confirm_password" id="confirm-input"
+            placeholder="Re-enter password..." required oninput="checkPasswordMatch()" />
           <div id="pw-match-msg" style="font-family:'Space Mono',monospace; font-size:0.68rem; margin-top:4px; display:none;"></div>
         </div>
 
         <!-- Terms checkboxes -->
         <div style="border:1px solid var(--cuff-border); padding:0.85rem 1rem; margin-bottom:1.25rem; display:flex; flex-direction:column; gap:0.6rem;">
           <label style="font-family:'Space Mono',monospace; font-size:0.73rem; color:var(--cuff-text); display:flex; align-items:center; gap:10px; cursor:pointer;">
-            <input type="checkbox" name="agree_terms" required style="accent-color:var(--cuff-navy); width:14px; height:14px; flex-shrink:0;" />
+            <input type="checkbox" name="agree_terms" required
+              style="accent-color:var(--cuff-navy); width:14px; height:14px; flex-shrink:0;" />
             [ I agree to the Terms of Service and Community Guidelines for CU Party Finder ]
           </label>
           <label style="font-family:'Space Mono',monospace; font-size:0.73rem; color:var(--cuff-text); display:flex; align-items:center; gap:10px; cursor:pointer;">
-            <input type="checkbox" name="agree_age" required style="accent-color:var(--cuff-navy); width:14px; height:14px; flex-shrink:0;" />
+            <input type="checkbox" name="agree_age" required
+              style="accent-color:var(--cuff-navy); width:14px; height:14px; flex-shrink:0;" />
             [ I am 18 years of age or older ]
           </label>
         </div>
 
+        <!-- Client-side form error -->
+        <div id="form-error" class="field-error" style="display:none; margin-bottom:0.75rem;"></div>
+
         <!-- Submit -->
-        <button
-          type="submit"
+        <button type="submit"
           style="width:100%; font-family:'Space Mono',monospace; font-size:0.8rem; font-weight:700; color:#fff; background:var(--cuff-navy); border:2px solid var(--cuff-navy); padding:0.75rem 1rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.15s;"
           onmouseover="this.style.background='var(--cuff-navy-light)'"
-          onmouseout="this.style.background='var(--cuff-navy)'"
-        >
+          onmouseout="this.style.background='var(--cuff-navy)'">
           [ CREATE ACCOUNT → ]
         </button>
 
       </form>
-
-    </div>
-  </div>
-
-  <!-- ── STEP 2: EMAIL VERIFICATION (shown after submit) ── -->
-  <div class="cuff-section" style="padding:0;">
-    <div style="background:var(--cuff-surface); border-bottom:1px solid var(--cuff-border); padding:0.6rem 1rem; display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-family:'Space Mono',monospace; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--cuff-gray-mid);">STEP 2: EMAIL VERIFICATION</span>
-      <span style="font-family:'Space Mono',monospace; font-size:0.65rem; color:var(--cuff-gray-light); font-style:italic;">(After form submission)</span>
-    </div>
-
-    <div style="padding:1.5rem 2rem 2rem;">
-      <div style="border:2px dashed var(--cuff-border); padding:2rem 1.5rem; display:flex; flex-direction:column; align-items:center; text-align:center;">
-
-        <!-- Email icon -->
-        <div style="width:48px; height:36px; border:2px solid var(--cuff-gray-border); position:relative; margin-bottom:1rem; background:var(--cuff-surface);">
-          <div style="position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden;">
-            <div style="position:absolute; top:50%; left:0; width:100%; height:1.5px; background:var(--cuff-gray-border); transform:rotate(25deg); transform-origin:left center;"></div>
-            <div style="position:absolute; top:50%; right:0; width:100%; height:1.5px; background:var(--cuff-gray-border); transform:rotate(-25deg); transform-origin:right center;"></div>
-          </div>
-        </div>
-
-        <p style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--cuff-muted); max-width:480px; line-height:1.7; margin-bottom:1.5rem;">
-          [ A 6-digit verification code will be sent to your @colorado.edu email. Enter it below to confirm your account. ]
-        </p>
-
-        <!-- 6-digit code inputs -->
-        <div style="display:flex; gap:8px; margin-bottom:1.25rem;" id="code-inputs">
-          <input type="text" maxlength="1" class="code-box" oninput="moveNext(this, 0)" />
-          <input type="text" maxlength="1" class="code-box" oninput="moveNext(this, 1)" />
-          <input type="text" maxlength="1" class="code-box" oninput="moveNext(this, 2)" />
-          <input type="text" maxlength="1" class="code-box" oninput="moveNext(this, 3)" />
-          <input type="text" maxlength="1" class="code-box" oninput="moveNext(this, 4)" />
-          <input type="text" maxlength="1" class="code-box" />
-        </div>
-
-        <button
-          type="button"
-          style="font-family:'Space Mono',monospace; font-size:0.78rem; font-weight:700; color:#fff; background:var(--cuff-navy); border:2px solid var(--cuff-navy); padding:0.6rem 1.75rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;"
-        >
-          [ VERIFY EMAIL ]
-        </button>
-
-      </div>
     </div>
   </div>
 
@@ -248,27 +184,96 @@
     margin-bottom: 0.4rem;
   }
 
-  .code-box {
-    width: 44px;
-    height: 52px;
-    border: 1px solid var(--cuff-border);
-    background: var(--cuff-white);
+  .field-error {
     font-family: 'Space Mono', monospace;
-    font-size: 1.2rem;
-    font-weight: 700;
-    text-align: center;
-    color: var(--cuff-text);
-    border-radius: 0;
-    transition: border-color 0.15s;
+    font-size: 0.68rem;
+    color: #991b1b;
+    margin-top: 4px;
   }
 
-  .code-box:focus {
-    outline: none;
-    border-color: var(--cuff-navy);
+  .req-row {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cuff-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+    transition: color 0.15s;
+  }
+
+  .req-row.met {
+    color: #065f46;
+    font-weight: 700;
+  }
+
+  .req-row.unmet {
+    color: #991b1b;
+  }
+
+  .req-icon {
+    font-size: 0.75rem;
+    flex-shrink: 0;
   }
 </style>
 
 <script>
+  const PW_RULES = {
+    'req-length':  { regex: /.{8,}/ },
+    'req-upper':   { regex: /[A-Z]/ },
+    'req-number':  { regex: /[0-9]/ },
+    'req-special': { regex: /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?`~]/ },
+  };
+
+  function checkPasswordStrength(value) {
+    const box = document.getElementById('pw-requirements');
+    box.style.display = value.length > 0 ? 'block' : 'none';
+    Object.entries(PW_RULES).forEach(([id, rule]) => {
+      const row  = document.getElementById(id);
+      const icon = row.querySelector('.req-icon');
+      if (rule.regex.test(value)) {
+        row.classList.add('met');
+        row.classList.remove('unmet');
+        icon.textContent = '✓';
+      } else {
+        row.classList.remove('met');
+        if (value.length > 0) row.classList.add('unmet');
+        icon.textContent = '☐';
+      }
+    });
+  }
+
+  function passwordIsValid(value) {
+    return Object.values(PW_RULES).every(rule => rule.regex.test(value));
+  }
+
+  function checkPasswordMatch() {
+    const pw  = document.getElementById('password-input').value;
+    const cpw = document.getElementById('confirm-input').value;
+    const msg = document.getElementById('pw-match-msg');
+    if (!cpw) { msg.style.display = 'none'; return; }
+    if (pw === cpw) {
+      msg.style.display = 'block';
+      msg.style.color   = '#065f46';
+      msg.textContent   = '✓ Passwords match';
+    } else {
+      msg.style.display = 'block';
+      msg.style.color   = '#991b1b';
+      msg.textContent   = '✗ Passwords do not match';
+    }
+  }
+
+  function validateCUEmail(input) {
+    const errEl = document.getElementById('email-error');
+    if (input.value && !input.value.toLowerCase().endsWith('@colorado.edu')) {
+      errEl.style.display = 'block';
+      input.style.borderColor = '#fca5a5';
+    } else {
+      errEl.style.display = 'none';
+      input.style.borderColor = '';
+    }
+  }
+
   function previewPhoto(input) {
     if (input.files && input.files[0]) {
       const reader = new FileReader();
@@ -282,37 +287,30 @@
     }
   }
 
-  function validateCUEmail(input) {
-    const errEl = document.getElementById('email-error');
-    if (input.value && !input.value.endsWith('@colorado.edu')) {
-      errEl.style.display = 'block';
-      input.style.borderColor = '#fca5a5';
-    } else {
-      errEl.style.display = 'none';
-      input.style.borderColor = '';
+  function validateForm() {
+    const email    = document.getElementById('email-input').value;
+    const password = document.getElementById('password-input').value;
+    const confirm  = document.getElementById('confirm-input').value;
+
+    if (!email.toLowerCase().endsWith('@colorado.edu')) {
+      showFormError('You must use a @colorado.edu email address.');
+      return false;
     }
+    if (!passwordIsValid(password)) {
+      showFormError('Password does not meet all requirements. Please check the checklist above.');
+      return false;
+    }
+    if (password !== confirm) {
+      showFormError('Passwords do not match.');
+      return false;
+    }
+    return true;
   }
 
-  function checkPasswordMatch() {
-    const pw  = document.getElementById('password-input').value;
-    const cpw = document.getElementById('confirm-input').value;
-    const msg = document.getElementById('pw-match-msg');
-    if (!cpw) { msg.style.display = 'none'; return; }
-    if (pw === cpw) {
-      msg.style.display = 'block';
-      msg.style.color = '#065f46';
-      msg.textContent = '✓ Passwords match';
-    } else {
-      msg.style.display = 'block';
-      msg.style.color = '#991b1b';
-      msg.textContent = '✗ Passwords do not match';
-    }
-  }
-
-  function moveNext(input, index) {
-    const boxes = document.querySelectorAll('.code-box');
-    if (input.value.length === 1 && index < boxes.length - 1) {
-      boxes[index + 1].focus();
-    }
+  function showFormError(msg) {
+    const el = document.getElementById('form-error');
+    el.textContent   = msg;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 </script>

@@ -119,37 +119,88 @@ app.get('/register', (req, res) => {
     res.render('pages/register');
 });
 // POST register (create a new account)
-app.post('/register', async (req, res) => {
-    const { first_name, last_name, email, password, confirm_password } = req.body;
+app.post('/register', upload.single('profile_photo'), async (req, res) => {
+    const { first_name, last_name, email, username, class_year, password, confirm_password } = req.body;
 
-    // Basic validation
+    // ── Presence check ─────────────────────────────────────────────────────────
     if (!first_name || !last_name || !email || !password) {
-        return res.status(400).render('pages/register', { error: 'All fields are required.' });
+        return res.render('pages/register', { error: 'First name, last name, email, and password are required.' });
     }
+
+    // ── CU Boulder email check (server-side — cannot be bypassed like JS) ──────
+    if (!email.toLowerCase().endsWith('@colorado.edu')) {
+        return res.render('pages/register', { error: 'You must use a @colorado.edu email address to register.' });
+    }
+
+    // ── Password regex rules ───────────────────────────────────────────────────
+    // These must stay in sync with the PW_RULES object in register.hbs
+    const pwRules = [
+        { regex: /.{8,}/,                                        message: 'Password must be at least 8 characters.' },
+        { regex: /[A-Z]/,                                        message: 'Password must contain at least one uppercase letter.' },
+        { regex: /[0-9]/,                                        message: 'Password must contain at least one number.' },
+        { regex: /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?`~]/,     message: 'Password must contain at least one special character.' },
+    ];
+    for (const rule of pwRules) {
+        if (!rule.regex.test(password)) {
+            return res.render('pages/register', { error: rule.message });
+        }
+    }
+
+    // ── Password confirmation ──────────────────────────────────────────────────
     if (password !== confirm_password) {
         return res.render('pages/register', { error: 'Passwords do not match.' });
     }
-    if (password.length < 6) {
-        return res.render('pages/register', { error: 'Password must be at least 6 characters.' });
+
+    // ── Class year validation ──────────────────────────────────────────────────
+    const validYears = ['freshman', 'sophomore', 'junior', 'senior', 'grad'];
+    if (class_year && !validYears.includes(class_year)) {
+        return res.render('pages/register', { error: 'Invalid class year selected.' });
     }
 
     try {
-        // Check if email already exists
+        // ── Duplicate email check ──────────────────────────────────────────────
         const existing = await db.oneOrNone(
-            'SELECT user_id FROM user_data WHERE email = $1', [email]
+            'SELECT user_id FROM user_data WHERE email = $1', [email.toLowerCase().trim()]
         );
         if (existing) {
             return res.render('pages/register', { error: 'That email is already registered.' });
         }
 
+        // ── Duplicate username check ───────────────────────────────────────────
+        if (username && username.trim()) {
+            const existingUsername = await db.oneOrNone(
+                'SELECT user_id FROM user_data WHERE username = $1', [username.trim()]
+            );
+            if (existingUsername) {
+                return res.render('pages/register', { error: 'That username is already taken. Please choose another.' });
+            }
+        }
+
+        // ── Hash password and insert ───────────────────────────────────────────
         const hash = await bcrypt.hash(password, 10);
+        const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
+
         const newUser = await db.one(
-            `INSERT INTO user_data (first_name, last_name, email, password)
-             VALUES ($1, $2, $3, $4) RETURNING user_id, first_name, last_name, email`,
-            [first_name, last_name, email, hash]
+            `INSERT INTO user_data (first_name, last_name, email, password, username, class_year, profile_photo)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING user_id, first_name, last_name, email`,
+            [
+                first_name.trim(),
+                last_name.trim(),
+                email.toLowerCase().trim(),
+                hash,
+                username ? username.trim() : null,
+                class_year || null,
+                photoPath,
+            ]
         );
 
-        req.session.user = newUser;
+        req.session.user = {
+            user_id:    newUser.user_id,
+            first_name: newUser.first_name,
+            last_name:  newUser.last_name,
+            email:      newUser.email,
+        };
         res.redirect('/home');
     } catch (err) {
         console.error('Register error:', err);
@@ -811,36 +862,80 @@ app.post('/notifications/mark-read', requireAuth, async (req, res) => {
 
 // ----------------------------------------------------------------------------------------------
 // SEARCH API CALLS
-// GET search (search for events and users)
+// GET search (search events by name, description, OR host name; show all events if no query)
 app.get('/search', async (req, res) => {
     const { q } = req.query;
+    const query = q ? q.trim() : '';
 
-    if (!q || !q.trim()) {
-        return res.render('pages/search', { query: '', events: [], users: [] });
-    }
-
-    const term = `%${q.trim()}%`;
     try {
-        const events = await db.any(
-            `SELECT e.event_id, e.event_name, e.event_details, e.event_start_time, e.event_end_time, e.event_cost, e.cover_photo,
-                    u.first_name || ' ' || u.last_name AS host_name
-             FROM events e
-             LEFT JOIN user_data u ON e.event_host = u.user_id
-             WHERE e.event_name ILIKE $1 OR e.event_details ILIKE $1
-             ORDER BY e.event_start_time ASC LIMIT 20`, [term]
-        );
+        let events;
 
-        const users = await db.any(
-            `SELECT user_id, first_name, last_name, email
-             FROM user_data
-             WHERE first_name ILIKE $1 OR last_name ILIKE $1
-             ORDER BY last_name LIMIT 20`, [term]
-        );
+        if (!query) {
+            // ── No search term: return all upcoming events ─────────────────────
+            events = await db.any(
+                `SELECT e.event_id, e.event_name, e.event_details,
+                        e.event_start_time, e.event_end_time, e.event_cost, e.cover_photo,
+                        u.first_name || ' ' || u.last_name AS host_name,
+                        l.street || ' ' || l.building_number AS location_text,
+                        COUNT(etg.guest_id) AS rsvp_count
+                 FROM events e
+                 LEFT JOIN user_data u ON e.event_host = u.user_id
+                 LEFT JOIN locations l ON e.location_id = l.location_id
+                 LEFT JOIN events_to_guests etg ON e.event_id = etg.event_id
+                 WHERE e.event_start_time >= NOW()
+                   AND (e.status IS NULL OR e.status = 'active')
+                 GROUP BY e.event_id, u.first_name, u.last_name, l.street, l.building_number
+                 ORDER BY e.event_start_time ASC`
+            );
+        } else {
+            // ── Search term provided: match event name, details, OR host name ──
+            // Using word-boundary matching (\y) prevents "r" matching inside
+            // words like "RSVP" — only whole-word prefix matches are returned.
+            // Falls back to standard ILIKE if the term is 3+ characters since
+            // short terms are more likely to be abbreviations the user means literally.
+            const term = `%${query}%`;
+            const hostTerm = `%${query}%`;
 
-        res.render('pages/search', { query: q, events, users });
+            events = await db.any(
+                `SELECT e.event_id, e.event_name, e.event_details,
+                        e.event_start_time, e.event_end_time, e.event_cost, e.cover_photo,
+                        u.first_name || ' ' || u.last_name AS host_name,
+                        l.street || ' ' || l.building_number AS location_text,
+                        COUNT(etg.guest_id) AS rsvp_count
+                 FROM events e
+                 LEFT JOIN user_data u ON e.event_host = u.user_id
+                 LEFT JOIN locations l ON e.location_id = l.location_id
+                 LEFT JOIN events_to_guests etg ON e.event_id = etg.event_id
+                 WHERE e.event_start_time >= NOW()
+                   AND (e.status IS NULL OR e.status = 'active')
+                   AND (
+                     e.event_name ILIKE $1
+                     OR (
+                       -- Only match event_details when term is 3+ chars
+                       -- to avoid single-letter false positives like "R" -> "RSVP"
+                       length($2) >= 3 AND e.event_details ILIKE $2
+                     )
+                     OR (u.first_name || ' ' || u.last_name) ILIKE $3
+                     OR u.first_name ILIKE $3
+                     OR u.last_name ILIKE $3
+                   )
+                 GROUP BY e.event_id, u.first_name, u.last_name, l.street, l.building_number
+                 ORDER BY e.event_start_time ASC
+                 LIMIT 50`,
+                [term, term, hostTerm]
+            );
+        }
+
+        res.render('pages/search', {
+            query,
+            events,
+            isSingleResult: events.length === 1,
+            showPagination: events.length > 12,
+            sessionUser: req.session.user,
+        });
     } catch (err) {
         console.error('Search error:', err);
-        res.render('pages/search', { query: q, events: [], users: [], error: 'Search failed.' });
+        res.render('pages/search', { query, events: [], error: 'Search failed.' });
     }
 });
 

@@ -18,25 +18,14 @@
         type="text"
         name="q"
         value="{{query}}"
-        placeholder="Search events, themes, dates..."
+        placeholder="Search events or host names..."
       />
     </div>
     <button type="submit" class="btn-cuff-primary" style="white-space:nowrap;">[ SEARCH ]</button>
+    {{#if query}}
+      <a href="/search" class="btn-cuff-outline" style="white-space:nowrap; display:flex; align-items:center; text-decoration:none;">CLEAR</a>
+    {{/if}}
   </form>
-
-  <!-- Events / Hosts Tab Toggle -->
-  <ul class="nav filter-nav mb-4">
-    <li class="nav-item">
-      <a class="nav-link {{#unless showHosts}}active{{/unless}}" href="/search?q={{query}}&tab=events">
-        🎟 &nbsp;Events
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {{#if showHosts}}active{{/if}}" href="/search?q={{query}}&tab=hosts">
-        👤 &nbsp;Hosts
-      </a>
-    </li>
-  </ul>
 
   <div class="row g-4">
 
@@ -51,21 +40,10 @@
           <div class="mb-4">
             <div class="filter-group-title">DATE RANGE</div>
             <div class="d-flex flex-column gap-2">
-              <label class="filter-radio-label"><input type="radio" name="date_range" value="today" /> Today</label>
-              <label class="filter-radio-label"><input type="radio" name="date_range" value="weekend" /> This Weekend</label>
-              <label class="filter-radio-label"><input type="radio" name="date_range" value="week" checked /> This Week</label>
-              <label class="filter-radio-label"><input type="radio" name="date_range" value="month" /> This Month</label>
-              <label class="filter-radio-label"><input type="radio" name="date_range" value="custom" /> Custom Range</label>
-            </div>
-          </div>
-
-          <!-- Event Type -->
-          <div class="mb-4">
-            <div class="filter-group-title">EVENT TYPE</div>
-            <div class="d-flex flex-column gap-2">
-              <label class="filter-check-label"><input type="checkbox" name="type" value="all" /> All Events</label>
-              <label class="filter-check-label"><input type="checkbox" name="type" value="public" checked /> Public Only</label>
-              <label class="filter-check-label"><input type="checkbox" name="type" value="private" /> Private (Friends)</label>
+              <label class="filter-radio-label"><input type="radio" name="date_range" value="today" {{#if filterToday}}checked{{/if}} /> Today</label>
+              <label class="filter-radio-label"><input type="radio" name="date_range" value="weekend" {{#if filterWeekend}}checked{{/if}} /> This Weekend</label>
+              <label class="filter-radio-label"><input type="radio" name="date_range" value="week" {{#unless filterDate}}checked{{/unless}} /> This Week</label>
+              <label class="filter-radio-label"><input type="radio" name="date_range" value="month" {{#if filterMonth}}checked{{/if}} /> This Month</label>
             </div>
           </div>
 
@@ -73,11 +51,11 @@
           <div class="mb-4">
             <div class="filter-group-title">ENTRY FEE</div>
             <div class="d-flex flex-column gap-2">
-              <label class="filter-radio-label"><input type="radio" name="fee" value="any" checked /> Any</label>
-              <label class="filter-radio-label"><input type="radio" name="fee" value="free" /> Free only</label>
-              <label class="filter-radio-label"><input type="radio" name="fee" value="under5" /> Under $5</label>
-              <label class="filter-radio-label"><input type="radio" name="fee" value="under10" /> Under $10</label>
-              <label class="filter-radio-label"><input type="radio" name="fee" value="10plus" /> $10+</label>
+              <label class="filter-radio-label"><input type="radio" name="fee" value="any" {{#unless filterFee}}checked{{/unless}} /> Any</label>
+              <label class="filter-radio-label"><input type="radio" name="fee" value="free" {{#if filterFree}}checked{{/if}} /> Free only</label>
+              <label class="filter-radio-label"><input type="radio" name="fee" value="under5" {{#if filterUnder5}}checked{{/if}} /> Under $5</label>
+              <label class="filter-radio-label"><input type="radio" name="fee" value="under10" {{#if filterUnder10}}checked{{/if}} /> Under $10</label>
+              <label class="filter-radio-label"><input type="radio" name="fee" value="10plus" {{#if filter10plus}}checked{{/if}} /> $10+</label>
             </div>
           </div>
 
@@ -85,7 +63,7 @@
           <div class="mb-4">
             <div class="filter-group-title">THEME</div>
             <div class="d-flex flex-wrap gap-1">
-              <button type="button" class="theme-tag active-tag" onclick="toggleTag(this)">Neon</button>
+              <button type="button" class="theme-tag" onclick="toggleTag(this)">Neon</button>
               <button type="button" class="theme-tag" onclick="toggleTag(this)">Formal</button>
               <button type="button" class="theme-tag" onclick="toggleTag(this)">Casual</button>
               <button type="button" class="theme-tag" onclick="toggleTag(this)">Costume</button>
@@ -133,7 +111,9 @@
 
         <!-- Results Header -->
         <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-          <div class="cuff-section-title mb-0" style="border-bottom:none; padding-bottom:0;">SEARCH RESULTS</div>
+          <div class="cuff-section-title mb-0" style="border-bottom:none; padding-bottom:0;">
+            {{#if query}}SEARCH RESULTS{{else}}ALL UPCOMING EVENTS{{/if}}
+          </div>
           <div class="d-flex align-items-center gap-2">
             <span style="font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--cuff-muted);">Sort by:</span>
             <select class="cuff-input" style="width:auto; padding:0.25rem 0.5rem; font-size:0.7rem;">
@@ -144,86 +124,76 @@
           </div>
         </div>
 
-        {{#if query}}
-          <div style="font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--cuff-muted); margin-bottom:1rem;">
-            Showing {{events.length}} events for <strong style="color:var(--cuff-text);">"{{query}}"</strong>
-          </div>
-        {{/if}}
+        <div style="font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--cuff-muted); margin-bottom:1rem;">
+          {{#if query}}
+            Showing {{events.length}} event{{#unless isSingleResult}}s{{/unless}} for <strong style="color:var(--cuff-text);">"{{query}}"</strong>
+            — results include event names, descriptions, and host names
+          {{else}}
+            Showing all {{events.length}} upcoming event{{#unless isSingleResult}}s{{/unless}}
+          {{/if}}
+        </div>
         <hr style="border-color:var(--cuff-border); margin-bottom:1.25rem;" />
 
-        {{#if query}}
-          {{#if events.length}}
-            <div class="row g-3 mb-4">
-              {{#each events}}
-                <div class="col-md-6 col-xl-4">
-                  <div class="search-event-card">
-                    <div class="search-event-photo">
-                      {{#if this.cover_photo}}
-                        <img src="/uploads/{{this.cover_photo}}" alt="{{this.event_name}}" style="width:100%; height:100%; object-fit:cover;" />
-                      {{else}}
-                        <div class="photo-placeholder">
-                          <i class="bi bi-image" style="font-size:1.4rem; color:var(--cuff-gray-light);"></i>
-                          <span style="font-size:0.6rem; color:var(--cuff-gray-light); margin-top:2px; font-family:'Space Mono',monospace;">[EVENT PHOTO]</span>
-                        </div>
-                      {{/if}}
-                    </div>
-                    <div class="search-event-body">
-                      <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="search-event-name">{{this.event_name}}</div>
-                        <span class="search-public-tag">Public</span>
+        {{#if events.length}}
+          <div class="row g-3 mb-4">
+            {{#each events}}
+              <div class="col-md-6 col-xl-4">
+                <div class="search-event-card">
+                  <div class="search-event-photo">
+                    {{#if this.cover_photo}}
+                      <img src="/uploads/{{this.cover_photo}}" alt="{{this.event_name}}" style="width:100%; height:100%; object-fit:cover;" />
+                    {{else}}
+                      <div class="photo-placeholder">
+                        <i class="bi bi-image" style="font-size:1.4rem; color:var(--cuff-gray-light);"></i>
+                        <span style="font-size:0.6rem; color:var(--cuff-gray-light); margin-top:2px; font-family:'Space Mono',monospace;">[EVENT PHOTO]</span>
                       </div>
-                      <div class="search-event-meta">
-                        <div><span>📅</span> {{formatTime this.event_start_time}}{{#if this.event_end_time}} – {{formatTime this.event_end_time}}{{/if}}</div>
-                        <div><span>📍</span> {{this.location_text}}</div>
-                        <div><span>👥</span> {{this.rsvp_count}} RSVP'd</div>
-                      </div>
-                      <a href="/events/{{this.event_id}}" class="btn-cuff-outline" style="display:inline-block; margin-top:0.75rem; font-size:0.7rem; text-decoration:none;">
-                        View Details →
-                      </a>
+                    {{/if}}
+                  </div>
+                  <div class="search-event-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div class="search-event-name">{{this.event_name}}</div>
+                      <span class="search-public-tag">Public</span>
                     </div>
+                    <div class="search-event-meta">
+                      <div><span>📅</span> {{formatTime this.event_start_time}}</div>
+                      <div><span>📍</span> {{this.location_text}}</div>
+                      <div><span>👤</span> {{this.host_name}}</div>
+                      <div><span>👥</span> {{this.rsvp_count}} RSVP'd</div>
+                    </div>
+                    <a href="/events/{{this.event_id}}" class="btn-cuff-outline" style="display:inline-block; margin-top:0.75rem; font-size:0.7rem; text-decoration:none;">
+                      View Details →
+                    </a>
                   </div>
                 </div>
-              {{/each}}
-            </div>
+              </div>
+            {{/each}}
+          </div>
 
-            <!-- Pagination -->
+          <!-- Pagination (static UI — wire up to backend when needed) -->
+          {{#if showPagination}}
             <div class="d-flex justify-content-center align-items-center gap-1 mt-2">
               <button class="page-btn">« Prev</button>
               <button class="page-btn active-page">1</button>
               <button class="page-btn">2</button>
               <button class="page-btn">3</button>
               <span style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--cuff-muted); padding:0 4px;">...</span>
-              <button class="page-btn">8</button>
               <button class="page-btn">Next »</button>
             </div>
-
-          {{else}}
-            {{#if users.length}}
-              <div class="cuff-section-title">PEOPLE ({{users.length}})</div>
-              <div class="d-flex flex-column gap-2">
-                {{#each users}}
-                  <a href="/user/{{this.user_id}}" style="text-decoration:none; color:inherit;">
-                    <div class="cuff-card d-flex align-items-center gap-3">
-                      <div class="avatar-sm"></div>
-                      <div style="font-family:'Space Mono',monospace; font-size:0.8rem; font-weight:700;">
-                        {{this.first_name}} {{this.last_name}}
-                      </div>
-                    </div>
-                  </a>
-                {{/each}}
-              </div>
-            {{else}}
-              <div class="empty-state">
-                <div class="empty-icon">🔍</div>
-                <p>No results found for "{{query}}".</p>
-                <p style="font-size:0.7rem;">Try a different search term or adjust your filters.</p>
-              </div>
-            {{/if}}
           {{/if}}
+
         {{else}}
           <div class="empty-state">
-            <div class="empty-icon">🎉</div>
-            <p>Search for events, themes, or hosts above.</p>
+            <div class="empty-icon">🔍</div>
+            {{#if query}}
+              <p>No events found for "{{query}}".</p>
+              <p style="font-size:0.7rem;">Try a different search term — you can search by event name, description, or host name.</p>
+              <a href="/search" class="btn-cuff-outline" style="display:inline-block; margin-top:0.75rem; font-size:0.72rem; text-decoration:none;">SHOW ALL EVENTS</a>
+            {{else}}
+              <p>No upcoming events yet.</p>
+              {{#if sessionUser}}
+                <a href="/events/new" class="btn-cuff-primary" style="display:inline-block; margin-top:0.75rem; text-decoration:none;">HOST AN EVENT</a>
+              {{/if}}
+            {{/if}}
           </div>
         {{/if}}
 
@@ -302,6 +272,7 @@
     justify-content: center;
     border-bottom: 1px solid var(--cuff-border);
     flex-shrink: 0;
+    overflow: hidden;
   }
 
   .photo-placeholder {
